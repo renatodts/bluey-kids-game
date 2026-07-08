@@ -53,7 +53,11 @@ export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick }) {
     if (onPick && !onPick(toy.userData.toyId)) return;
     activePointerId = event.pointerId;
     draggedToy = toy;
-    canvas.setPointerCapture(event.pointerId);
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // PointerEvents sintéticos (E2E) não têm ponteiro ativo — arrasto segue sem captura
+    }
     const point = floorPointFromEvent(event);
     if (point) draggedToy.position.set(point.x, floorY + DRAG_LIFT, point.z);
   }
@@ -70,7 +74,11 @@ export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick }) {
     activePointerId = null;
     draggedToy = null;
     if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-    onDrop(toy.userData.toyId, { x: toy.position.x, z: toy.position.z });
+    onDrop(
+      toy.userData.toyId,
+      { x: toy.position.x, z: toy.position.z },
+      { x: event.clientX, y: event.clientY } // posição do ponteiro em tela (p/ acerto por paralaxe)
+    );
   }
 
   canvas.addEventListener('pointerdown', onPointerDown);
