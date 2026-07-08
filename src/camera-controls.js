@@ -1,170 +1,80 @@
-// Controles de câmera gestuais, estilo app de mapa (AD: substitui OrbitControls,
-// que não suporta girar com o twist de dois dedos):
-//   1 dedo / botão esquerdo  → gira ao redor do alvo
-//   2 dedos                  → pan (centróide) + pinch-zoom (distância) +
-//                              giro (ângulo entre os dedos), tudo no mesmo gesto
-//   roda do mouse            → zoom; botão direito → pan
-// Sem inércia: resposta direta — a mão (da criança) manda.
+// Controles de câmera sobre a lib camera-controls (yomotsu) — padrão de
+// mercado para 3D mobile, no lugar da v1 escrita à mão (AD-009):
+//   1 dedo / botão esquerdo  → orbita ao redor do alvo
+//   2 dedos                  → pinch-zoom + pan no mesmo gesto
+//   3 dedos / botão direito  → pan puro
+//   roda do mouse            → zoom na direção do cursor; botão do meio → zoom
+// Suavização SmoothDamp da lib: micro-damping durante o gesto e assentamento
+// curto ao soltar — sem fling longo (desorienta criança de 4 anos).
 import * as THREE from 'three';
+import CameraControls from 'camera-controls';
+
+CameraControls.install({ THREE });
 
 const MIN_DISTANCE = 3;
 const MAX_DISTANCE = 26;
 const MIN_POLAR = 0.12;
 const MAX_POLAR = Math.PI / 2 - 0.06; // nunca abaixo do chão
 
-// Alvo preso à sala — pan nunca leva a câmera para fora do jogo.
-const TARGET_BOUNDS = {
-  minX: -7,
-  maxX: 7,
-  minY: 0,
-  maxY: 4,
-  minZ: -3.4,
-  maxZ: 6.4,
-};
+// Alvo preso à sala — pan nunca leva a câmera para fora do jogo. (valores da v1)
+const TARGET_BOUNDS = new THREE.Box3(
+  new THREE.Vector3(-7, 0, -3.4),
+  new THREE.Vector3(7, 4, 6.4)
+);
+
+const DRAGGING_SMOOTH_TIME = 0.06; // resposta direta com micro-suavização
+const SMOOTH_TIME = 0.25; // assentamento pós-gesto
 
 export function createCameraControls({ camera, canvas }) {
-  const target = new THREE.Vector3();
-  const spherical = new THREE.Spherical();
-  const offset = new THREE.Vector3();
-  const panX = new THREE.Vector3();
-  const panY = new THREE.Vector3();
-  const prevTarget = new THREE.Vector3();
+  const controls = new CameraControls(camera, canvas);
 
-  // Ponteiros aceitos por ESTE controle (id → última posição/botão). Um toque
-  // que virou arrasto de brinquedo nunca entra aqui (enabled=false na hora).
-  const pointers = new Map();
-  let enabled = false;
+  controls.minDistance = MIN_DISTANCE;
+  controls.maxDistance = MAX_DISTANCE;
+  controls.minPolarAngle = MIN_POLAR;
+  controls.maxPolarAngle = MAX_POLAR;
+  controls.setBoundary(TARGET_BOUNDS);
+  controls.draggingSmoothTime = DRAGGING_SMOOTH_TIME;
+  controls.smoothTime = SMOOTH_TIME;
+  controls.dollyToCursor = true;
 
-  function syncSpherical() {
-    offset.copy(camera.position).sub(target);
-    spherical.setFromVector3(offset);
-  }
+  controls.mouseButtons.left = CameraControls.ACTION.ROTATE;
+  controls.mouseButtons.right = CameraControls.ACTION.TRUCK;
+  controls.mouseButtons.middle = CameraControls.ACTION.DOLLY;
+  controls.touches.one = CameraControls.ACTION.TOUCH_ROTATE;
+  controls.touches.two = CameraControls.ACTION.TOUCH_DOLLY_TRUCK;
+  controls.touches.three = CameraControls.ACTION.TOUCH_TRUCK;
 
-  function applySpherical() {
-    spherical.phi = THREE.MathUtils.clamp(spherical.phi, MIN_POLAR, MAX_POLAR);
-    spherical.radius = THREE.MathUtils.clamp(spherical.radius, MIN_DISTANCE, MAX_DISTANCE);
-    spherical.makeSafe();
-    camera.position.setFromSpherical(spherical).add(target);
-    camera.lookAt(target);
-  }
+  controls.enabled = false; // liberado pelo main quando a abertura termina
 
-  function rotate(dxPx, dyPx) {
-    syncSpherical();
-    const h = canvas.clientHeight || 1;
-    spherical.theta -= (2 * Math.PI * dxPx) / h;
-    spherical.phi -= (2 * Math.PI * dyPx) / h;
-    applySpherical();
-  }
-
-  // Giro de dois dedos: a cena acompanha o twist (dAngle em coords de tela).
-  function twist(dAngle) {
-    syncSpherical();
-    spherical.theta += dAngle;
-    applySpherical();
-  }
-
-  function dolly(scale) {
-    syncSpherical();
-    spherical.radius *= scale;
-    applySpherical();
-  }
-
-  function pan(dxPx, dyPx) {
-    const h = canvas.clientHeight || 1;
-    offset.copy(camera.position).sub(target);
-    // Quanto 1px vale no mundo à distância atual (projeção em perspectiva).
-    const worldPerPx =
-      (2 * offset.length() * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) / h;
-    panX.setFromMatrixColumn(camera.matrix, 0).multiplyScalar(-dxPx * worldPerPx);
-    panY.setFromMatrixColumn(camera.matrix, 1).multiplyScalar(dyPx * worldPerPx);
-    prevTarget.copy(target);
-    target.add(panX).add(panY);
-    target.x = THREE.MathUtils.clamp(target.x, TARGET_BOUNDS.minX, TARGET_BOUNDS.maxX);
-    target.y = THREE.MathUtils.clamp(target.y, TARGET_BOUNDS.minY, TARGET_BOUNDS.maxY);
-    target.z = THREE.MathUtils.clamp(target.z, TARGET_BOUNDS.minZ, TARGET_BOUNDS.maxZ);
-    // Câmera acompanha só o delta que sobrou do clamp — orientação intacta.
-    camera.position.add(target).sub(prevTarget);
-  }
-
-  function otherPointer(excludeId) {
-    for (const [id, p] of pointers) {
-      if (id !== excludeId) return p;
-    }
-    return null;
-  }
-
-  function onPointerDown(event) {
-    if (!enabled) return;
-    if (event.pointerType === 'mouse' && event.button !== 0 && event.button !== 2) return;
-    if (pointers.size >= 2) return; // terceiro dedo não muda o gesto
-    pointers.set(event.pointerId, { x: event.clientX, y: event.clientY, button: event.button });
-    try {
-      canvas.setPointerCapture(event.pointerId);
-    } catch {
-      // ponteiros sintéticos (E2E) não têm ponteiro ativo — gesto segue sem captura
-    }
-  }
-
-  function onPointerMove(event) {
-    const prev = pointers.get(event.pointerId);
-    if (!prev) return;
-    const curr = { x: event.clientX, y: event.clientY, button: prev.button };
-    pointers.set(event.pointerId, curr);
-    if (!enabled) return;
-
-    if (pointers.size === 1) {
-      const dx = curr.x - prev.x;
-      const dy = curr.y - prev.y;
-      if (prev.button === 2) pan(dx, dy);
-      else rotate(dx, dy);
-      return;
-    }
-
-    // Dois dedos: decompõe o movimento em centróide (pan), distância (zoom)
-    // e ângulo entre os dedos (giro) — tudo relativo ao outro dedo parado.
-    const other = otherPointer(event.pointerId);
-    if (!other) return;
-    pan(
-      (curr.x - prev.x) / 2,
-      (curr.y - prev.y) / 2
-    );
-    const prevDist = Math.hypot(prev.x - other.x, prev.y - other.y);
-    const currDist = Math.hypot(curr.x - other.x, curr.y - other.y);
-    if (prevDist > 1 && currDist > 1) dolly(prevDist / currDist);
-    let dAngle =
-      Math.atan2(curr.y - other.y, curr.x - other.x) -
-      Math.atan2(prev.y - other.y, prev.x - other.x);
-    if (dAngle > Math.PI) dAngle -= 2 * Math.PI;
-    if (dAngle < -Math.PI) dAngle += 2 * Math.PI;
-    twist(dAngle);
-  }
-
-  function onPointerEnd(event) {
-    if (!pointers.delete(event.pointerId)) return;
-    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-  }
-
-  function onWheel(event) {
-    if (!enabled) return;
-    event.preventDefault();
-    dolly(event.deltaY > 0 ? 1.1 : 1 / 1.1);
-  }
-
-  canvas.addEventListener('pointerdown', onPointerDown);
-  canvas.addEventListener('pointermove', onPointerMove);
-  canvas.addEventListener('pointerup', onPointerEnd);
-  canvas.addEventListener('pointercancel', onPointerEnd);
-  canvas.addEventListener('wheel', onWheel, { passive: false });
+  // A lib só suprime o menu de contexto com enabled=true; durante arrasto de
+  // brinquedo/abertura o botão direito não pode abrir menu em cima do jogo.
   canvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
+  const targetOut = new THREE.Vector3();
+
   return {
-    target,
+    // dt em segundos (o main já clampa); a lib devolve se a pose mudou.
+    update(dt) {
+      return controls.update(dt);
+    },
+    // Sincroniza a pose sem transição — handoff da abertura sem salto.
+    setPose(position, target) {
+      controls.normalizeRotations(); // exigência da API v3 antes de setLookAt
+      controls.setLookAt(position.x, position.y, position.z, target.x, target.y, target.z, false);
+    },
+    getState() {
+      controls.getTarget(targetOut);
+      return {
+        position: camera.position,
+        target: targetOut,
+        distance: controls.distance,
+      };
+    },
     get enabled() {
-      return enabled;
+      return controls.enabled;
     },
     set enabled(value) {
-      enabled = value;
-      if (!value) pointers.clear(); // gesto em andamento morre junto
+      controls.enabled = value; // false → controls.cancel(): gesto em andamento morre junto
     },
   };
 }
