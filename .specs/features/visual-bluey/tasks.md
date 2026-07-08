@@ -238,11 +238,11 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Acertar um brinquedo dispara `bluey.cheer()` (checado em `npm run dev`)
-- [ ] Completar rodada dispara `bluey.danceAt()` junto da chuva de confete existente
-- [ ] `window.__game.state().bluey` retorna `{source, mode}` coerente
-- [ ] `themeStatus.cheerLoaded`/`cheerVisible` removidos sem quebrar `framesLoaded`/`plaquesLoaded`
-- [ ] `npm run build && npm test` passa
+- [x] Acertar um brinquedo dispara `bluey.cheer()` (checado em `npm run dev`)
+- [x] Completar rodada dispara `bluey.danceAt()` junto da chuva de confete existente
+- [x] `window.__game.state().bluey` retorna `{source, mode}` coerente
+- [x] `themeStatus.cheerLoaded`/`cheerVisible` removidos sem quebrar `framesLoaded`/`plaquesLoaded`
+- [x] `npm run build && npm test` passa
 
 **Tests**: none (fluxo coberto no E2E de T11)
 **Gate**: build

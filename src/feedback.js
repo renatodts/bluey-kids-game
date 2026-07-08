@@ -1,11 +1,10 @@
 // Resposta sensorial: tweens de acerto/erro (GUARD-02/03), confete e celebração (GUARD-05/08),
 // som festivo via WebAudio (GUARD-09). Mini-tween próprio (lerp + easing) — sem dependências
-// (design.md, Tech Decisions). Aparição da Bluey (T12) entra na próxima task.
+// (design.md, Tech Decisions). Bluey é injetada por main.js e reage sem bloquear input.
 // SPEC_DEVIATION: sons sintetizados com osciladores WebAudio em vez de arquivos de kenney.nl.
 // Reason: zero dependência de rede/asset em runtime e sem risco de licença; design.md já
 // previa WebAudio direto e a spec só pede "sons livres genéricos".
 import * as THREE from 'three';
-import { applyArtTexture, themeStatus } from './scene.js';
 
 const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 const easeInQuad = (t) => t * t;
@@ -158,30 +157,10 @@ function createAudio() {
   return { unlock, chime, fanfare, state: () => ({ unlocked, soundsPlayed }) };
 }
 
-// Bluey comemorando num canto a cada acerto (~2s). Fallback sem arte: estrela
-// festiva de cor sólida — jogo segue idêntico. (GUARD-08.1/.4)
-function createCheer(scene) {
-  const mesh = new THREE.Mesh(
-    new THREE.CircleGeometry(0.9, 5),
-    new THREE.MeshBasicMaterial({ color: '#ffd166', transparent: true })
-  );
-  mesh.position.set(5.4, 1.5, -2.4);
-  mesh.rotation.y = -0.35;
-  mesh.scale.setScalar(0);
-  scene.add(mesh);
-  applyArtTexture(mesh, '/bluey/bluey-cheer.png', () => {
-    mesh.geometry.dispose();
-    mesh.geometry = new THREE.PlaneGeometry(1.6, 2.84); // proporção do PNG (530×940)
-    themeStatus.cheerLoaded = true;
-  });
-  return mesh;
-}
-
-export function createFeedback({ scene, floorY }) {
+export function createFeedback({ scene, floorY, bluey }) {
   const tweens = [];
   const confetti = createConfetti(scene);
   const audio = createAudio();
-  const cheer = createCheer(scene);
 
   function addTween(target, duration, onUpdate, onComplete) {
     tweens.push({ target, duration, elapsed: 0, onUpdate, onComplete });
@@ -261,32 +240,14 @@ export function createFeedback({ scene, floorY }) {
     pulse(box.mesh);
     confetti.burst(box.position.x, floorY + 1.2, box.position.z); // (GUARD-08.1)
     audio.chime(); // (GUARD-09.2)
-    showCheer(); // (GUARD-08.1)
-  }
-
-  // Aparição da Bluey (~2s) com pop de entrada/saída e dancinha. (GUARD-08.1)
-  function showCheer() {
-    cancel(cheer);
-    themeStatus.cheerVisible = true;
-    addTween(
-      cheer,
-      2.2,
-      (t) => {
-        const pop = t < 0.12 ? easeOutCubic(t / 0.12) : t > 0.88 ? 1 - easeInQuad((t - 0.88) / 0.12) : 1;
-        cheer.scale.setScalar(pop);
-        cheer.position.y = 1.5 + Math.sin(t * Math.PI * 6) * 0.08;
-      },
-      () => {
-        cheer.scale.setScalar(0);
-        themeStatus.cheerVisible = false;
-      }
-    );
+    if (bluey) bluey.cheer(); // (VIS-03)
   }
 
   // Celebração grande ao completar a rodada: chuva de confete + caixas pulando + fanfarra.
   // (GUARD-05, GUARD-08.2, GUARD-09.2)
   function roundComplete(boxes) {
     confetti.rain(3);
+    if (bluey) bluey.danceAt(new THREE.Vector3(0, floorY, 0.25), 3);
     for (const box of boxes) pulse(box.mesh);
     audio.fanfare();
   }

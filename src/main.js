@@ -6,6 +6,7 @@ import { createToyMesh } from './toys.js';
 import { createBoxes } from './boxes.js';
 import { createDrag } from './drag.js';
 import { createFeedback } from './feedback.js';
+import { createBluey } from './bluey.js';
 
 const overlay = document.getElementById('start-overlay');
 const playButton = document.getElementById('play-button');
@@ -61,7 +62,13 @@ const game = createGame(storage);
 const boxes = createBoxes();
 for (const box of boxes) scene.add(box.mesh);
 
-const feedback = createFeedback({ scene, floorY });
+const bluey = createBluey({
+  scene,
+  cornerPosition: new THREE.Vector3(5.8, floorY, -2.1),
+  centerPosition: new THREE.Vector3(0, floorY, 0.25),
+});
+
+const feedback = createFeedback({ scene, floorY, bluey });
 
 // Referência viva compartilhada com o drag — mutar no lugar, nunca reatribuir.
 const toyMeshes = [];
@@ -180,7 +187,12 @@ createDrag({
 window.__game = {
   state() {
     // RoundState + flags de áudio e tema (cenários 03/04 assertam por aqui).
-    return { ...game.getState(), audio: feedback.audioState(), theme: { ...themeStatus } };
+    return {
+      ...game.getState(),
+      audio: feedback.audioState(),
+      theme: { ...themeStatus },
+      bluey: { source: bluey.source, mode: bluey.mode },
+    };
   },
   screenPos(objectId) {
     const boxTarget = boxes.find((b) => b.type === objectId);
@@ -205,5 +217,6 @@ renderer.setAnimationLoop((time) => {
   const dt = Math.min((time - lastTime) / 1000, 0.05); // clamp: aba dormiu ≠ salto de animação
   lastTime = time;
   feedback.update(dt);
+  bluey.update(dt);
   renderer.render(scene, camera);
 });

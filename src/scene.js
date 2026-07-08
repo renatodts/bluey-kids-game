@@ -16,8 +16,6 @@ export const ROOM = {
 export const themeStatus = {
   framesLoaded: 0,
   plaquesLoaded: 0,
-  cheerLoaded: false,
-  cheerVisible: false,
 };
 
 // Aplica arte oficial num mesh quando (e só quando) a textura carrega; em falha,
