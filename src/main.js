@@ -9,9 +9,19 @@ import { createDrag } from './drag.js';
 import { createFeedback } from './feedback.js';
 import { createBluey } from './bluey.js';
 import { createTransitions } from './transitions.js';
+import { createHud } from './hud.js';
 
 const overlay = document.getElementById('start-overlay');
 const playButton = document.getElementById('play-button');
+
+// Loader de assets: GLTFLoader e TextureLoader compartilham o DefaultLoadingManager,
+// e onLoad dispara quando TODOS os itens terminam — inclusive os que falham (o
+// fallback de cor sólida/Bluey procedural segue valendo). Só então o play aparece.
+let assetsReady = false;
+THREE.DefaultLoadingManager.onLoad = () => {
+  assetsReady = true;
+  overlay.classList.add('ready');
+};
 
 // WebGL indisponível → mensagem estática simples, voltada ao adulto.
 // Única exceção à regra "sem texto na UI" (edge case da spec).
@@ -29,6 +39,9 @@ if (!webglAvailable()) {
   overlay.remove();
   // Iris opaco cobriria a mensagem de erro — sem jogo, sem transição.
   document.getElementById('transition-overlay').remove();
+  // Sem jogo também não há progresso nem replay. (WIN-01.7)
+  document.getElementById('hud').remove();
+  document.getElementById('replay-overlay').remove();
   const message = document.createElement('div');
   message.id = 'webgl-error';
   message.textContent =
@@ -51,6 +64,17 @@ playButton.addEventListener('pointerup', () => {
   startCameraIntro();
 });
 
+// Jogar de novo (WIN-09): botão some, iris cobre a troca e o jogo renasce
+// na rodada 1 com HUD zerado (spawnRound → updateHud).
+document.getElementById('replay-button').addEventListener('pointerup', () => {
+  replayOverlay.classList.add('hidden');
+  transitions.close().then(() => {
+    game.reset();
+    spawnRound();
+    transitions.open();
+  });
+});
+
 const canvas = document.getElementById('game-canvas');
 const { scene, camera, renderer, floorY, onResize } = createScene(canvas);
 
@@ -68,6 +92,19 @@ const storage = (() => {
 })();
 
 const game = createGame(storage);
+
+// HUD de progresso: barra por brinquedo + estrelas por rodada. (WIN-01..03)
+const hud = createHud({
+  starEls: [...document.querySelectorAll('#hud .star')],
+  barFillEl: document.getElementById('bar-fill'),
+});
+
+function updateHud() {
+  const p = game.getProgress();
+  hud.set({ starsLit: p.starsLit, fraction: p.total ? p.stored / p.total : 0 });
+}
+
+const replayOverlay = document.getElementById('replay-overlay');
 
 const boxes = createBoxes();
 for (const box of boxes) scene.add(box.mesh);
@@ -96,6 +133,7 @@ function spawnRound() {
     mesh.updateMatrixWorld(true); // raycast coerente já no mesmo tick (antes do próximo frame)
     toyMeshes.push(mesh);
   }
+  updateHud(); // barra zera, estrelas das rodadas anteriores permanecem (WIN-02.4)
 }
 
 function findToyMesh(toyId) {
@@ -168,18 +206,26 @@ function handleDrop(toyId, pos, screenXY) {
     // Sugar para a caixa com pulo; sai do raycast já (estado é 'stored'). (GUARD-02)
     toyMeshes.splice(toyMeshes.indexOf(mesh), 1);
     feedback.stored(mesh, box);
+    updateHud(); // barra avança a cada acerto (WIN-02.2)
     if (game.isRoundComplete()) {
-      // Celebração grande + próxima rodada automática em ~4s. (GUARD-05, GUARD-06)
-      feedback.roundComplete(boxes);
-      setTimeout(() => {
-        // Iris fecha → troca de brinquedos coberta → iris abre: brinquedos
-        // novos nunca aparecem sem transição. (VIS-06.2)
-        transitions.close().then(() => {
-          game.advanceRound();
-          spawnRound();
-          transitions.open();
-        });
-      }, 4000);
+      if (game.getState().phase === 'won') {
+        // VITÓRIA: festa grande e, depois dela dar o tom, o botão de jogar
+        // de novo — a criança decide quando recomeçar. (WIN-06, WIN-08)
+        feedback.victory(boxes);
+        setTimeout(() => replayOverlay.classList.remove('hidden'), 4000);
+      } else {
+        // Celebração grande + próxima rodada automática em ~4s. (GUARD-05, GUARD-06)
+        feedback.roundComplete(boxes);
+        setTimeout(() => {
+          // Iris fecha → troca de brinquedos coberta → iris abre: brinquedos
+          // novos nunca aparecem sem transição. (VIS-06.2)
+          transitions.close().then(() => {
+            game.advanceRound();
+            spawnRound();
+            transitions.open();
+          });
+        }, 4000);
+      }
     }
   } else {
     // Caixa errada: balança a caixa e devolve o brinquedo quicando ao spawn. (GUARD-03)
@@ -261,9 +307,11 @@ window.__game = {
     // RoundState + flags de áudio e tema (cenários 03/04 assertam por aqui).
     return {
       ...game.getState(),
+      progress: game.getProgress(),
       audio: feedback.audioState(),
       theme: { ...themeStatus },
       bluey: { source: bluey.source, mode: bluey.mode },
+      assetsReady,
       transition: transitions.state,
       camera: cameraHookState(),
     };

@@ -25,14 +25,21 @@ sequência de arrastos.
    Aguardar também `camera.intro === false` (recuo do close na Bluey, ~3s;
    input bloqueado enquanto durar). Então `window.__game.seed(303)`.
    **Assert**: `round === 1`, `toys.length === 6`, todos `'idle'`, `phase === 'playing'`.
+   **Assert (WIN-02/03, HUD zerado)**: `progress` = `{ round: 1, totalRounds: 3,
+   stored: 0, total: 6, starsLit: 0 }`; na tela, nenhuma estrela do `#hud` tem a
+   classe `lit` e `#bar-fill` tem largura `0%`.
 2. **GUARD-02/04 (guardar todos)**: repetir até não sobrar brinquedo `'idle'`:
    `pointerdown` no `screenPos` de um brinquedo idle → identificar o `'dragging'`
    → arrastar até `screenPos(tipoDele)` (caixa certa) → soltar → aguardar ~0.7s.
+   **Assert (WIN-02.2, após o 1º acerto)**: `progress.stored === 1` e a largura
+   de `#bar-fill` subiu para ~`16.67%` (1/6).
    **Assert (após o último)**: todos os 6 `state === 'stored'`.
 3. **GUARD-05 (celebração grande) + VIS-03 (Bluey dança)**: imediatamente após
    o último acerto.
    **Assert**: `phase === 'celebrating'`; dentro de ~1s, `bluey.mode === 'dance'`
    (Bluey vai ao centro dançar com a chuva de confete).
+   **Assert (WIN-03.3, estrela acende)**: `progress.starsLit === 1` e a primeira
+   estrela do `#hud` tem a classe `lit`.
    Screenshot de evidência da celebração: `e2e-02-celebracao.jpeg`.
 4. **VIS-06.2 (iris entre rodadas)**: aguardar ~4.2s do último acerto.
    **Assert**: `transition === 'closing'` (iris cobrindo a troca de brinquedos).
@@ -44,6 +51,9 @@ sequência de arrastos.
    (~6.5s do último acerto no total).
    **Assert**: `round === 2`, `toys.length === 9` (3 por tipo), todos `'idle'`,
    `phase === 'playing'`, `bluey.mode === 'idle'` (voltou ao canto).
+   **Assert (WIN-02.4, barra zera / estrela fica)**: `progress` =
+   `{ round: 2, totalRounds: 3, stored: 0, total: 9, starsLit: 1 }` e
+   `#bar-fill` voltou a `0%` com a primeira estrela ainda `lit`.
 6. **GUARD-06 (persistência)**: recarregar a página SEM limpar `localStorage`;
    tocar play; aguardar `transition === 'none'`.
    **Assert**: `state().round === 2` e `toys.length === 9` (retomou da rodada salva).
