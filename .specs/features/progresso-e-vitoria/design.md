@@ -1,4 +1,4 @@
-# Progresso e Vitória — Design
+# Progress and Victory — Design
 
 **Spec**: `.specs/features/progresso-e-vitoria/spec.md`
 **Context**: `.specs/features/progresso-e-vitoria/context.md`
@@ -8,28 +8,28 @@
 
 ## Architecture Overview
 
-Segue os padrões já estabelecidos no projeto:
+Follows the patterns already established in the project:
 
-- **Lógica pura em `game.js`** (AD-004): fase `won`, meta de 3 rodadas, progresso e
-  reset viram estado/derivações puras, testadas com Vitest.
-- **HUD como overlay DOM** (mesmo racional do iris em `transitions.js`): CSS puro no
-  topo da tela, `pointer-events: none`, sem disputar draw calls do WebGL e testável
-  sem jsdom (elementos injetados/mockados). Alternativa (HUD em cena 3D via sprites)
-  descartada: acompanharia a câmera livre (AD-007) e ficaria borrado/oclusível —
-  o HUD precisa ser fixo e nítido.
-- **Celebração de vitória em `feedback.js`**: reusa o pool de confete, a fanfarra
-  WebAudio e a dança da Bluey — só com parâmetros maiores + jingle próprio.
-- **Botão de replay**: mesmo padrão visual do `#play-button` existente (círculo
-  laranja + triângulo branco, sem texto) — linguagem que a criança já conhece.
+- **Pure logic in `game.js`** (AD-004): the `won` phase, the 3-round goal, progress, and
+  reset become pure state/derivations, tested with Vitest.
+- **HUD as a DOM overlay** (same rationale as the iris in `transitions.js`): plain CSS at
+  the top of the screen, `pointer-events: none`, not competing with WebGL draw calls, and
+  testable without jsdom (injected/mocked elements). Alternative (HUD in the 3D scene via
+  sprites) discarded: it would follow the free camera (AD-007) and end up blurred/occludable —
+  the HUD needs to be fixed and sharp.
+- **Victory celebration in `feedback.js`**: reuses the confetti pool, the WebAudio
+  fanfare, and Bluey's dance — just with bigger parameters + its own jingle.
+- **Replay button**: same visual pattern as the existing `#play-button` (orange
+  circle + white triangle, no text) — a language the child already knows.
 
 ```mermaid
 graph TD
-    G[game.js — puro<br/>fase won, progresso, reset] -->|getProgress/phase| M[main.js — composição]
-    M -->|set stars/bar| H[hud.js — DOM overlay novo]
-    M -->|victory boxes| F[feedback.js — confete/fanfarra/Bluey]
-    M -->|close/open| T[transitions.js — iris existente]
+    G[game.js — pure<br/>won phase, progress, reset] -->|getProgress/phase| M[main.js — composition]
+    M -->|set stars/bar| H[hud.js — new DOM overlay]
+    M -->|victory boxes| F[feedback.js — confetti/fanfare/Bluey]
+    M -->|close/open| T[transitions.js — existing iris]
     R[#replay-button DOM] -->|pointerup| M
-    M -->|state.progress| W[window.__game — hook E2E]
+    M -->|state.progress| W[window.__game — E2E hook]
 ```
 
 ---
@@ -40,102 +40,102 @@ graph TD
 
 | Component | Location | How to Use |
 | --------- | -------- | ---------- |
-| Persistência de rodada (`readSavedRound`/`writeSavedRound`) | `src/game.js` | Estender: clamp de save > 3, remoção da chave na vitória |
-| Confete (pool `InstancedMesh`, `rain`) | `src/feedback.js` | `victory()` chama `rain(8)` — pool fixo já limita custo |
-| Fanfarra WebAudio (`note`/`safePlay`) | `src/feedback.js` | Jingle de vitória mais longo com as mesmas primitivas |
-| Dança da Bluey (`danceAt`) | `src/bluey.js` | Dança central mais longa na vitória |
-| Iris (`transitions.close/open`) | `src/transitions.js` | Replay: fecha → reseta/spawna → abre (mesmo fluxo da troca de rodada) |
-| Estilo do `#play-button` | `index.html` | Replicar para `#replay-button` (sem texto) |
-| Padrão de teste com elementos mockados | `src/transitions.test.js` | `hud.js` recebe elementos injetados; testes mockam `classList`/`style` |
+| Round persistence (`readSavedRound`/`writeSavedRound`) | `src/game.js` | Extend: clamp for save > 3, key removal on victory |
+| Confetti (`InstancedMesh` pool, `rain`) | `src/feedback.js` | `victory()` calls `rain(8)` — the fixed pool already caps the cost |
+| WebAudio fanfare (`note`/`safePlay`) | `src/feedback.js` | Longer victory jingle using the same primitives |
+| Bluey's dance (`danceAt`) | `src/bluey.js` | Longer center dance on victory |
+| Iris (`transitions.close/open`) | `src/transitions.js` | Replay: close → reset/spawn → open (same flow as round transition) |
+| `#play-button` style | `index.html` | Replicate for `#replay-button` (no text) |
+| Test pattern with mocked elements | `src/transitions.test.js` | `hud.js` receives injected elements; tests mock `classList`/`style` |
 
 ### Integration Points
 
 | System | Integration Method |
-| ------ | ------------------ |
-| `window.__game.state()` | Ganha `progress: { round, totalRounds, stored, total, starsLit, phase }` para os cenários E2E |
-| Caminho de erro WebGL (`main.js`) | Remove também `#hud` e `#replay-overlay` (WIN-01 AC 7) |
-| `drag.js` | Sem mudança: `pickToy` já rejeita quando `phase !== 'playing'` (fase `won` bloqueia de graça) |
+| ------ | ------------------- |
+| `window.__game.state()` | Gains `progress: { round, totalRounds, stored, total, starsLit, phase }` for the E2E scenarios |
+| WebGL error path (`main.js`) | Also removes `#hud` and `#replay-overlay` (WIN-01 AC 7) |
+| `drag.js` | No change: `pickToy` already rejects when `phase !== 'playing'` (the `won` phase blocks it for free) |
 
 ---
 
 ## Components
 
-### game.js (estendido — puro)
+### game.js (extended — pure)
 
-- **Purpose**: dono da regra "3 rodadas = vitória" e do progresso derivado.
+- **Purpose**: owns the "3 rounds = victory" rule and the derived progress.
 - **Location**: `src/game.js`
-- **Interfaces** (novas/alteradas):
+- **Interfaces** (new/changed):
   - `TOTAL_ROUNDS = 3` (export)
-  - `tryStore(...)`: ao guardar o último brinquedo, `phase = round >= TOTAL_ROUNDS ? 'won' : 'celebrating'`; quando `won`, remove a chave do storage (WIN-05, WIN-07)
-  - `advanceRound()`: no-op (retorna rodada atual) quando `phase === 'won'` — nunca existe rodada 4 (WIN-05)
-  - `getProgress(): { round, totalRounds, stored, total, starsLit }` — `starsLit` = rodadas completadas (`round-1`, ou `totalRounds` quando `won`; barra = `stored/total` da rodada) (WIN-02/03)
-  - `reset()`: rodada 1, storage limpo, pronto para `startRound()` (WIN-09)
-  - `readSavedRound`: valores `> TOTAL_ROUNDS` → 1 (edge case save antigo)
-- **Reuses**: mulberry32, wrappers de storage tolerantes (GUARD-06).
+  - `tryStore(...)`: when storing the last toy, `phase = round >= TOTAL_ROUNDS ? 'won' : 'celebrating'`; when `won`, removes the storage key (WIN-05, WIN-07)
+  - `advanceRound()`: no-op (returns the current round) when `phase === 'won'` — round 4 never exists (WIN-05)
+  - `getProgress(): { round, totalRounds, stored, total, starsLit }` — `starsLit` = completed rounds (`round-1`, or `totalRounds` when `won`; bar = `stored/total` of the round) (WIN-02/03)
+  - `reset()`: round 1, storage cleared, ready for `startRound()` (WIN-09)
+  - `readSavedRound`: values `> TOTAL_ROUNDS` → 1 (old-save edge case)
+- **Reuses**: mulberry32, tolerant storage wrappers (GUARD-06).
 
-### hud.js (novo — DOM, sem three.js)
+### hud.js (new — DOM, no three.js)
 
-- **Purpose**: refletir o progresso na barra e nas estrelas; nenhuma decisão de regra.
+- **Purpose**: reflect progress in the bar and stars; no rule decisions.
 - **Location**: `src/hud.js`
 - **Interfaces**:
-  - `createHud({ starEls, barFillEl })` — elementos existentes no HTML, injetados
-  - `set({ starsLit, fraction })` — acende `starEls[0..starsLit-1]` via `classList` `lit`; `barFillEl.style.width = fraction*100 + '%'`
-  - Idempotente e clampado (fraction fora de [0,1] é clampado; starsLit fora de [0,3] idem)
-- **Dependencies**: nenhuma (elementos injetados → testável com mocks, padrão `transitions.test.js`).
+  - `createHud({ starEls, barFillEl })` — existing HTML elements, injected
+  - `set({ starsLit, fraction })` — lights up `starEls[0..starsLit-1]` via `classList` `lit`; `barFillEl.style.width = fraction*100 + '%'`
+  - Idempotent and clamped (fraction outside [0,1] is clamped; starsLit outside [0,3] likewise)
+- **Dependencies**: none (injected elements → testable with mocks, following the `transitions.test.js` pattern).
 
-### index.html (estendido)
+### index.html (extended)
 
-- `#hud` fixo no topo, centralizado: 3 `span.star` (forma de estrela em CSS/SVG inline,
-  sem texto) + `div.bar > div#bar-fill`. `pointer-events: none`; `z-index: 4`
-  (abaixo do iris 5 — o iris cobre o HUD durante transições, correto).
-- `#replay-overlay` (oculto por padrão, classe `hidden`): `#replay-button` clone visual
-  do `#play-button`, `z-index: 10`.
+- `#hud` fixed at the top, centered: 3 `span.star` (star shape in inline CSS/SVG,
+  no text) + `div.bar > div#bar-fill`. `pointer-events: none`; `z-index: 4`
+  (below the iris at 5 — the iris covers the HUD during transitions, which is correct).
+- `#replay-overlay` (hidden by default, class `hidden`): `#replay-button` visual
+  clone of `#play-button`, `z-index: 10`.
 
-### feedback.js (estendido)
+### feedback.js (extended)
 
-- **Interface nova**: `victory(boxes)` — `confetti.rain(8)`, `bluey.danceAt(centro, 8)`,
-  pulse em todas as caixas, jingle de vitória (arpejo estendido subindo, ~2s, mesmas
-  primitivas `note`) (WIN-06). Distinta de `roundComplete` (3s/fanfarra curta).
+- **New interface**: `victory(boxes)` — `confetti.rain(8)`, `bluey.danceAt(center, 8)`,
+  pulse on all the boxes, victory jingle (extended rising arpeggio, ~2s, same
+  `note` primitives) (WIN-06). Distinct from `roundComplete` (3s/short fanfare).
 
-### main.js (composição)
+### main.js (composition)
 
-- Cria o HUD; atualiza `hud.set(...)` em: spawn de rodada, cada `stored`, replay.
-- `handleDrop`, ramo `stored` + rodada completa: se `getState().phase === 'won'` →
-  `feedback.victory(boxes)`; `setTimeout(4000)` → mostra `#replay-overlay` (WIN-08).
-  Senão, fluxo atual (celebração + iris + `advanceRound`).
-- `#replay-button` `pointerup`: esconde overlay → `transitions.close()` → `game.reset()`
-  → `spawnRound()` → `hud.set` zerado → `transitions.open()` (WIN-09).
-- Caminho de erro WebGL: remove `#hud` e `#replay-overlay` junto dos demais.
-- `window.__game.state()`: adiciona `progress`.
+- Creates the HUD; updates `hud.set(...)` on: round spawn, each `stored`, replay.
+- `handleDrop`, `stored` branch + round completed: if `getState().phase === 'won'` →
+  `feedback.victory(boxes)`; `setTimeout(4000)` → shows `#replay-overlay` (WIN-08).
+  Otherwise, current flow (celebration + iris + `advanceRound`).
+- `#replay-button` `pointerup`: hides overlay → `transitions.close()` → `game.reset()`
+  → `spawnRound()` → `hud.set` reset → `transitions.open()` (WIN-09).
+- WebGL error path: also removes `#hud` and `#replay-overlay` along with the others.
+- `window.__game.state()`: adds `progress`.
 
 ---
 
 ## Data Models
 
 ```js
-// getProgress() — derivado, nunca armazenado
+// getProgress() — derived, never stored
 {
-  round: 1..3,        // rodada atual
+  round: 1..3,        // current round
   totalRounds: 3,
-  stored: 0..total,   // brinquedos guardados na rodada atual
-  total: 6|9|12,      // brinquedos da rodada atual
-  starsLit: 0..3      // rodadas completadas (3 quando phase === 'won')
+  stored: 0..total,   // toys stored in the current round
+  total: 6|9|12,      // toys in the current round
+  starsLit: 0..3      // completed rounds (3 when phase === 'won')
 }
 ```
 
-Persistência: continua sendo só a chave `hora-de-guardar:round` (número). Vitória
-remove a chave; save > 3 é tratado como ausente.
+Persistence: remains just the `hora-de-guardar:round` key (number). Victory
+removes the key; save > 3 is treated as absent.
 
 ---
 
 ## Error Handling Strategy
 
 | Error Scenario | Handling | User Impact |
-| -------------- | -------- | ----------- |
-| Storage indisponível/lança (modo privado) | Wrappers try/catch existentes; remoção da chave também é try/catch | Jogo funciona em memória; vitória/replay normais |
-| Save antigo com rodada > 3 | `readSavedRound` → 1 | Começa um jogo novo, HUD zerado |
-| Áudio bloqueado | `safePlay` existente | Vitória silenciosa, resto intacto |
-| WebGL indisponível | Remove `#hud`/`#replay-overlay` junto com os outros overlays | Só a mensagem de erro aparece |
+| --------------- | -------- | ------------ |
+| Storage unavailable/throws (private mode) | Existing try/catch wrappers; key removal is also try/catch | Game works in memory; victory/replay work normally |
+| Old save with round > 3 | `readSavedRound` → 1 | Starts a new game, HUD reset |
+| Audio blocked | Existing `safePlay` | Silent victory, everything else intact |
+| WebGL unavailable | Removes `#hud`/`#replay-overlay` along with the other overlays | Only the error message appears |
 
 ---
 
@@ -143,9 +143,9 @@ remove a chave; save > 3 é tratado como ausente.
 
 | Concern | Location | Impact | Mitigation |
 | ------- | -------- | ------ | ---------- |
-| `setTimeout` de 4s da troca de rodada corre por fora do game loop; na vitória um segundo timer (botão replay) pode coexistir com replay tocado rápido | `src/main.js:174` | Timer velho poderia reagir depois do replay | Fluxo de vitória usa um único timer; replay esconde overlay e o timer de vitória só *mostra* o overlay — mostrar após replay é impossível porque o timer é disparado antes do botão existir na tela e é o que o exibe. Cobrir com cenário E2E |
-| `advanceRound()` persiste rodada ANTES da rodada nova começar; se vitória limpasse storage em outro lugar haveria corrida | `src/game.js:126` | Save fantasma pós-vitória | Limpeza do storage acontece dentro de `tryStore` no mesmo tick em que `phase = 'won'` — nunca há `advanceRound` depois disso (no-op guard) |
-| HUD com z-index errado poderia cobrir o botão play ou ficar sobre a msg de erro | `index.html` | UI quebrada na abertura/erro | z-index 4 (< iris 5 < start 10 < erro 20) + remoção explícita no caminho de erro; lição do SPEC_DEVIATION anterior aplicada |
+| The 4s `setTimeout` of the round transition runs outside the game loop; on victory a second timer (replay button) could coexist with a quickly-triggered replay | `src/main.js:174` | An old timer could react after replay | The victory flow uses a single timer; replay hides the overlay, and the victory timer only *shows* the overlay — showing it after replay is impossible because the timer fires before the button exists on screen, and it's the timer itself that displays it. Cover with an E2E scenario |
+| `advanceRound()` persists the round BEFORE the new round starts; if victory cleared storage elsewhere there would be a race | `src/game.js:126` | Ghost save after victory | Storage cleanup happens inside `tryStore` in the same tick where `phase = 'won'` — `advanceRound` never runs after that (no-op guard) |
+| A wrong HUD z-index could cover the play button or sit above the error message | `index.html` | Broken UI on open/error | z-index 4 (< iris 5 < start 10 < error 20) + explicit removal on the error path; lesson from a previous SPEC_DEVIATION applied |
 
 ---
 
@@ -153,9 +153,9 @@ remove a chave; save > 3 é tratado como ausente.
 
 | Decision | Choice | Rationale |
 | -------- | ------ | --------- |
-| HUD em DOM, não na cena 3D | Overlay fixo `pointer-events:none` | Câmera é livre (AD-007): elemento 3D sairia de quadro; DOM é nítido, barato e testável (mesmo racional do iris) |
-| Estrelas como elementos pré-existentes no HTML | `hud.js` só liga/desliga classe | Zero criação de DOM no runtime; módulo testável com mocks (padrão transitions.test.js) |
-| Fase `won` decidida dentro de `tryStore` | game.js é a única fonte da regra | main.js não conta rodadas; mutantes em main não escapam do gate puro |
-| Barra por rodada (zera a cada rodada) | `stored/total` da rodada atual | Assumption confirmada no discuss (micro-feedback por brinquedo; estrelas = macro) |
+| HUD in DOM, not in the 3D scene | Fixed overlay `pointer-events:none` | The camera is free (AD-007): a 3D element would drift out of frame; DOM is sharp, cheap, and testable (same rationale as the iris) |
+| Stars as pre-existing elements in the HTML | `hud.js` only toggles a class | Zero runtime DOM creation; module testable with mocks (transitions.test.js pattern) |
+| `won` phase decided inside `tryStore` | game.js is the single source of the rule | main.js doesn't count rounds; mutants in main don't escape the pure gate |
+| Bar per round (resets each round) | `stored/total` of the current round | Assumption confirmed in the discuss (per-toy micro-feedback; stars = macro) |
 
-Nenhuma decisão de nível de projeto nova (todas derivam de ADs ativas).
+No new project-level decisions (all derive from active ADs).

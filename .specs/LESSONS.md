@@ -14,31 +14,31 @@ _none_
 
 Seen once or not yet corroborated. Tracked, not trusted.
 
-### L-001 — ACs de posicionamento espacial ('espalhar', 'perto', 'dentro da área') devem definir bounds numéricos na spec para o teste assertar valor exato, não constante da implementação
+### L-001 — Spatial-positioning ACs ('spread out', 'near', 'inside the area') must define numeric bounds in the spec so the test can assert an exact value, not a constant from the implementation
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec-writing` · harmful: 0
 - features: hora-de-guardar
 - evidence: GUARD-04 / src/game.test.js:34 (spec-writing)
 - last seen: 2026-07-08T14:55:55Z
 
-### L-002 — ACs com substantivos plurais vagos ('personagens', 'efeitos') devem enumerar quais/quantos elementos são exigidos, senão a verificação não tem desfecho preciso
+### L-002 — ACs with vague plural nouns ('characters', 'effects') must enumerate which/how many elements are required, otherwise verification has no precise outcome
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec-writing` · harmful: 0
 - features: hora-de-guardar
 - evidence: GUARD-08.2 (spec-writing)
 - last seen: 2026-07-08T14:55:55Z
 
-### L-003 — Para poucos efeitos sonoros simples, sintetizar com osciladores WebAudio elimina download/licença/rede; considerar como default na spec em vez de arquivos de áudio externos
+### L-003 — For a few simple sound effects, synthesizing with WebAudio oscillators eliminates download/license/network; consider this as the default in the spec instead of external audio files
 - signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `audio` · harmful: 0
 - features: hora-de-guardar
 - evidence: src/feedback.js:4 (audio)
 - last seen: 2026-07-08T14:55:55Z
 
-### L-004 — AC que delega valores precisos a outro documento ('definidos no design') só é verificável se o documento realmente fixar esses valores — pinar no design ou dar o valor na própria AC
+### L-004 — An AC that delegates precise values to another document ('defined in the design') is only verifiable if that document actually pins those values — pin it in the design or give the value in the AC itself
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec-writing` · harmful: 0
 - features: visual-bluey
 - evidence: VIS-01.1 / design.md (spec-writing)
 - last seen: 2026-07-08T18:47:06Z
 
-### L-005 — Design que introduz camada DOM com z-index deve enumerar as camadas/overlays existentes e ordenar explicitamente — valor absoluto escolhido sem esse mapa conflita com overlays já presentes
+### L-005 — A design that introduces a DOM layer with z-index must enumerate the existing layers/overlays and order them explicitly — an absolute value chosen without that map conflicts with overlays already present
 - signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
 - features: visual-bluey
 - evidence: index.html:33 SPEC_DEVIATION z-index (design)

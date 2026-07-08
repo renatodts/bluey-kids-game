@@ -2,23 +2,23 @@
 
 ## Problem Statement
 
-O jogo será jogado num celular via link na rede local, mas hoje a experiência mobile é passiva: câmera parada num diorama, sem tela cheia garantida, e o retrato só "afasta a câmera". Para parecer um jogo de verdade no celular, precisa de viewport cheia em paisagem e de um ambiente que se move — uma câmera viva que foca a ação sozinha, sem entregar controle de câmera à criança.
+The game will be played on a phone via a link on the local network, but today the mobile experience is passive: a camera fixed on a diorama, no guaranteed fullscreen, and portrait mode only "pulls the camera back." To feel like a real game on mobile, it needs a full landscape viewport and an environment that moves — a living camera that focuses on the action on its own, without handing camera control to the child.
 
 ## Goals
 
-- [ ] Jogo em tela cheia paisagem no celular, acessado via `http://IP:porta` na rede local.
-- [ ] Câmera viva: segue o arrasto, enfatiza o acerto, passeia na celebração, volta ao diorama — 100% automática.
-- [ ] Arrasto permanece preciso durante qualquer movimento de câmera (o brinquedo nunca "desgruda" do dedo).
+- [ ] Game in full landscape screen on mobile, accessed via `http://IP:port` on the local network.
+- [ ] Living camera: follows the drag, emphasizes the hit, tours during the celebration, returns to the diorama — 100% automatic.
+- [ ] Dragging remains precise during any camera movement (the toy never "detaches" from the finger).
 
 ## Out of Scope
 
 | Feature | Reason |
 | ------- | ------ |
-| Pan/zoom manual pela criança | Descartado no discuss; AD-002 (espírito) mantido |
-| PWA / instalável / offline | Acesso é via link direto no navegador |
-| Vibração (haptics) | Não pedido |
-| Conteúdo visual da celebração (confete, dança) | Feature `visual-bluey`; aqui só o MOVIMENTO de câmera |
-| Suporte a desktop além do atual | Desktop continua funcionando, mas o alvo de tuning é mobile |
+| Manual pan/zoom by the child | Dropped during discuss; AD-002 (spirit) kept |
+| PWA / installable / offline | Access is via a direct browser link |
+| Vibration (haptics) | Not requested |
+| Visual celebration content (confetti, dance) | Feature `visual-bluey`; here only the camera MOVEMENT |
+| Desktop support beyond current | Desktop keeps working, but the tuning target is mobile |
 
 ---
 
@@ -26,11 +26,11 @@ O jogo será jogado num celular via link na rede local, mas hoje a experiência 
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 | --------------------- | -------------- | --------- | ---------- |
-| iOS Safari (iPhone) sem Fullscreen API | Best effort: viewport cheia via CSS/meta; fullscreen só onde a API existe | Limitação de plataforma conhecida; falha silenciosa | y (via discuss) |
-| Orientation lock indisponível fora de fullscreen | Tentar lock só com fullscreen ativo; senão, overlay "vire o celular" cobre o caso | Screen Orientation lock exige fullscreen na maioria dos browsers | y (via discuss) |
-| Retrato durante o jogo | Overlay visual "vire o celular" + jogo pausado (substitui o comportamento atual de "afastar a câmera em retrato") | Escolha do usuário: paisagem em tela cheia; supersede parte do cenário e2e 05 | y |
-| Curvas/limites exatos da câmera | Critério do agente, com invariante: as 3 caixas e o brinquedo arrastado sempre no enquadramento | Discuss: agent's discretion | y |
-| Servidor LAN | `vite --host` (dev) e `vite preview --host` (produção); documentado no README | Já suportado pelo Vite; sem código novo além de config/doc | y |
+| iOS Safari (iPhone) without Fullscreen API | Best effort: full viewport via CSS/meta; fullscreen only where the API exists | Known platform limitation; silent failure | y (via discuss) |
+| Orientation lock unavailable outside fullscreen | Attempt lock only with fullscreen active; otherwise, the "turn your phone" overlay covers the case | Screen Orientation lock requires fullscreen in most browsers | y (via discuss) |
+| Portrait during gameplay | Visual "turn your phone" overlay + game paused (replaces the current "pull the camera back in portrait" behavior) | User's choice: fullscreen landscape; supersedes part of e2e scenario 05 | y |
+| Exact camera curves/limits | Agent's discretion, with the invariant: the 3 boxes and the dragged toy are always in frame | Discuss: agent's discretion | y |
+| LAN server | `vite --host` (dev) and `vite preview --host` (production); documented in the README | Already supported by Vite; no new code beyond config/docs | y |
 
 **Open questions:** none — all resolved or logged above.
 
@@ -38,66 +38,66 @@ O jogo será jogado num celular via link na rede local, mas hoje a experiência 
 
 ## User Stories
 
-### P1: Tela cheia paisagem no celular ⭐ MVP
+### P1: Full landscape screen on mobile ⭐ MVP
 
-**User Story**: Como pai, quero abrir o link no celular e o jogo ocupar a tela inteira em paisagem, para a criança jogar sem distração de barras do navegador.
+**User Story**: As a parent, I want to open the link on the phone and have the game fill the whole screen in landscape, so the child can play without browser bar distractions.
 
-**Why P1**: É o requisito de entrega ("jogado no celular via link"); sem isso nada do resto importa.
+**Why P1**: It's the delivery requirement ("played on mobile via link"); without it nothing else matters.
 
 **Acceptance Criteria**:
 
-1. WHEN o botão play é tocado em um navegador com Fullscreen API THEN o sistema SHALL requisitar fullscreen no mesmo gesto; WHEN a API não existe ou a requisição falha THEN o jogo SHALL continuar em viewport cheia sem erro visível.
-2. WHEN fullscreen é obtido e a Screen Orientation API permite lock THEN o sistema SHALL travar em landscape; falha SHALL ser silenciosa.
-3. WHEN a viewport está em retrato (aspect < 1) fora da tela inicial THEN o sistema SHALL exibir um overlay visual de "vire o celular" (ícone animado, sem depender de leitura) e SHALL ignorar input de jogo; WHEN a viewport volta a paisagem THEN o overlay SHALL sumir e o jogo retomar no estado em que estava.
-4. WHEN o jogo é servido via HTTP simples na rede local (`http://IP:porta`) THEN todas as funcionalidades de jogo SHALL operar — nenhum requisito de gameplay depende de secure context.
-5. WHEN o overlay de retrato aparece durante um arrasto THEN o brinquedo SHALL ser solto no lugar (mesmo comportamento do cancel resiliente existente).
+1. WHEN the play button is tapped in a browser with the Fullscreen API THEN the system SHALL request fullscreen within the same gesture; WHEN the API doesn't exist or the request fails THEN the game SHALL continue in full viewport with no visible error.
+2. WHEN fullscreen is obtained and the Screen Orientation API allows locking THEN the system SHALL lock to landscape; failure SHALL be silent.
+3. WHEN the viewport is in portrait (aspect < 1) outside the start screen THEN the system SHALL show a visual "turn your phone" overlay (animated icon, not dependent on reading) and SHALL ignore game input; WHEN the viewport returns to landscape THEN the overlay SHALL disappear and the game SHALL resume in the state it was in.
+4. WHEN the game is served via plain HTTP on the local network (`http://IP:port`) THEN all game features SHALL operate — no gameplay requirement depends on a secure context.
+5. WHEN the portrait overlay appears during a drag THEN the toy SHALL be dropped in place (same behavior as the existing resilient cancel).
 
-**Independent Test**: Abrir `http://IP:porta` num celular, tocar play → tela cheia paisagem; girar para retrato → overlay aparece e jogo pausa; girar de volta → jogo retoma.
+**Independent Test**: Open `http://IP:port` on a phone, tap play → full landscape screen; rotate to portrait → overlay appears and game pauses; rotate back → game resumes.
 
 ---
 
-### P1: Câmera viva automática ⭐ MVP
+### P1: Automatic living camera ⭐ MVP
 
-**User Story**: Como criança, quero que o mundo se mexa e chegue perto de onde estou mexendo, para o jogo parecer vivo — sem eu precisar controlar nada.
+**User Story**: As a child, I want the world to move and get close to where I'm interacting, so the game feels alive — without me having to control anything.
 
-**Why P1**: Pedido central ("ambiente se movendo, controlar o foco"); resolve a sensação de jogo parado.
+**Why P1**: Central request ("moving environment, controlling the focus"); solves the feeling of a static game.
 
 **Acceptance Criteria**:
 
-1. WHEN um brinquedo é pego (drag start) THEN a câmera SHALL iniciar aproximação suave (easing, sem cortes) na direção do brinquedo, e durante todo o arrasto SHALL manter o brinquedo E as três caixas dentro do enquadramento.
-2. WHEN o brinquedo é solto (qualquer resultado) THEN a câmera SHALL retornar suavemente ao enquadramento diorama em no máximo 2 s.
-3. WHEN um brinquedo é guardado com sucesso THEN a câmera SHALL executar uma ênfase breve na caixa (push-in ≤ 1 s) antes de retornar, sem impedir que a criança pegue outro brinquedo imediatamente (novo drag start cancela a ênfase e assume o follow).
-4. WHEN a rodada é completada THEN a câmera SHALL executar um passeio curto pela sala durante a celebração e SHALL estar de volta ao enquadramento diorama quando a nova rodada fica interativa.
-5. WHEN a câmera está em qualquer movimento THEN o raycast do arrasto SHALL usar a pose atual da câmera a cada frame — o brinquedo arrastado SHALL permanecer sob o dedo (erro de projeção imperceptível).
-6. WHEN a criança toca o fundo (fora de brinquedos) THEN a câmera SHALL permanecer inalterada (nenhum controle direto de câmera).
-7. WHEN o estado da câmera muda THEN o hook de teste SHALL expor o modo atual (`camera.mode: 'idle' | 'follow' | 'emphasis' | 'celebrate' | 'return'`) e a pose SHALL ser determinística dado o mesmo estado + dt (módulo puro testável, padrão AD-004).
+1. WHEN a toy is picked up (drag start) THEN the camera SHALL start a smooth approach (easing, no cuts) toward the toy, and throughout the drag SHALL keep the toy AND the three boxes within the frame.
+2. WHEN the toy is dropped (any outcome) THEN the camera SHALL smoothly return to the diorama framing within at most 2 s.
+3. WHEN a toy is successfully put away THEN the camera SHALL perform a brief emphasis on the box (push-in ≤ 1 s) before returning, without preventing the child from picking up another toy immediately (a new drag start cancels the emphasis and takes over the follow).
+4. WHEN the round is completed THEN the camera SHALL perform a short tour of the room during the celebration and SHALL be back at the diorama framing by the time the new round becomes interactive.
+5. WHEN the camera is in any motion THEN the drag raycast SHALL use the current camera pose every frame — the dragged toy SHALL stay under the finger (imperceptible projection error).
+6. WHEN the child touches the background (outside toys) THEN the camera SHALL remain unchanged (no direct camera control).
+7. WHEN the camera state changes THEN the test hook SHALL expose the current mode (`camera.mode: 'idle' | 'follow' | 'emphasis' | 'celebrate' | 'return'`) and the pose SHALL be deterministic given the same state + dt (pure testable module, AD-004 pattern).
 
-**Independent Test**: Arrastar um brinquedo e ver a câmera acompanhar suavemente; soltar e vê-la voltar; completar rodada e ver o passeio; asserts via `window.__game.state().camera.mode` no e2e.
+**Independent Test**: Drag a toy and watch the camera follow smoothly; release it and watch it return; complete a round and watch the tour; asserts via `window.__game.state().camera.mode` in e2e.
 
 ---
 
-### P2: Qualidade mobile (viewport e performance)
+### P2: Mobile quality (viewport and performance)
 
-**User Story**: Como pai, quero que o jogo rode liso no celular da família, sem tela esticada nem engasgos.
+**User Story**: As a parent, I want the game to run smoothly on the family's phone, with no stretched screen or stutters.
 
-**Why P2**: Tuning fino; o P1 entrega o funcional.
+**Why P2**: Fine tuning; P1 delivers the functional part.
 
 **Acceptance Criteria**:
 
-1. WHEN o jogo roda em tela cheia THEN o canvas SHALL cobrir 100% da viewport visível (incluindo áreas de notch/safe-area, via `viewport-fit=cover`) sem barras de rolagem nem distorção de aspecto.
-2. WHEN o dispositivo tem devicePixelRatio alto THEN o renderer SHALL continuar limitado (cap existente de pixel ratio ≤ 2) para preservar performance.
-3. WHEN o movimento de câmera ocorre em celular modesto THEN SHALL manter fluidez (validação manual/e2e: arrasto sem travadas perceptíveis).
+1. WHEN the game runs in fullscreen THEN the canvas SHALL cover 100% of the visible viewport (including notch/safe-area regions, via `viewport-fit=cover`) with no scrollbars or aspect distortion.
+2. WHEN the device has a high devicePixelRatio THEN the renderer SHALL remain capped (existing pixel ratio cap ≤ 2) to preserve performance.
+3. WHEN camera movement occurs on a modest phone THEN it SHALL stay fluid (manual/e2e validation: dragging with no perceptible stutter).
 
-**Independent Test**: Jogar num celular real via LAN e observar cobertura total da tela e fluidez do follow de câmera.
+**Independent Test**: Play on a real phone via LAN and observe full screen coverage and fluid camera follow.
 
 ---
 
 ## Edge Cases
 
-- WHEN o usuário sai do fullscreen manualmente (gesto do sistema) THEN o jogo SHALL continuar jogável em viewport normal; próximo toque no play (se houver tela inicial visível) pode re-requisitar.
-- WHEN resize/orientationchange ocorre durante movimento de câmera THEN o enquadramento SHALL se recalcular sem NaN/salto (integra com o resize resiliente existente).
-- WHEN a aba dorme e acorda durante follow THEN o clamp de dt existente SHALL evitar teleporte de câmera.
-- WHEN rodada completa ocorre com o dedo ainda na tela THEN o passeio de celebração SHALL aguardar o drop (estado follow → celebrate somente após soltar).
+- WHEN the user exits fullscreen manually (system gesture) THEN the game SHALL remain playable in normal viewport; the next tap on play (if a start screen is visible) may re-request it.
+- WHEN resize/orientationchange occurs during camera movement THEN the framing SHALL recompute with no NaN/jump (integrates with the existing resilient resize).
+- WHEN the tab sleeps and wakes during follow THEN the existing dt clamp SHALL prevent camera teleportation.
+- WHEN a round completes while the finger is still on the screen THEN the celebration tour SHALL wait for the drop (follow → celebrate state transition only after release).
 
 ---
 
@@ -105,15 +105,15 @@ O jogo será jogado num celular via link na rede local, mas hoje a experiência 
 
 | Dimension | Resolution |
 | --------- | ---------- |
-| Input validation & bounds | AC Câmera-1 (enquadramento limitado: caixas sempre visíveis), AC Fullscreen-3/5 (input ignorado em retrato, drop resiliente) |
-| Failure / partial-failure | AC Fullscreen-1/2 (APIs ausentes/falhando → silencioso); edge case saída manual de fullscreen |
-| Idempotency / retry / duplicates | Requisições repetidas de fullscreen são inofensivas (idempotentes por natureza da API); N/A além disso |
-| Auth boundaries & rate limits | N/A because jogo local sem backend |
-| Concurrency / ordering | AC Câmera-3 (novo drag cancela ênfase), edge case celebrate-após-drop; máquina de estados de câmera com transições explícitas |
-| Data lifecycle / expiry | N/A because nenhuma persistência nova |
-| Observability | AC Câmera-7 (hook expõe `camera.mode`); overlay de retrato observável via DOM |
-| External-dependency failure | N/A because sem dependência de rede em runtime; servir via LAN é infra (Vite `--host`) |
-| State-transition integrity | AC Câmera-7 + edge cases: máquina idle/follow/emphasis/celebrate/return com transições válidas e determinísticas |
+| Input validation & bounds | Camera-AC1 (bounded framing: boxes always visible), Fullscreen-AC3/5 (input ignored in portrait, resilient drop) |
+| Failure / partial-failure | Fullscreen-AC1/2 (APIs missing/failing → silent); edge case of manual fullscreen exit |
+| Idempotency / retry / duplicates | Repeated fullscreen requests are harmless (idempotent by the API's nature); N/A beyond that |
+| Auth boundaries & rate limits | N/A because the game is local with no backend |
+| Concurrency / ordering | Camera-AC3 (new drag cancels emphasis), edge case celebrate-after-drop; camera state machine with explicit transitions |
+| Data lifecycle / expiry | N/A because no new persistence |
+| Observability | Camera-AC7 (hook exposes `camera.mode`); portrait overlay observable via DOM |
+| External-dependency failure | N/A because no runtime network dependency; serving via LAN is infra (Vite `--host`) |
+| State-transition integrity | Camera-AC7 + edge cases: idle/follow/emphasis/celebrate/return state machine with valid, deterministic transitions |
 
 ---
 
@@ -121,21 +121,21 @@ O jogo será jogado num celular via link na rede local, mas hoje a experiência 
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| MOB-01 | P1: Fullscreen (AC 1–2, fullscreen + lock best effort) | Design | Pending |
-| MOB-02 | P1: Fullscreen (AC 3, 5, overlay retrato + pausa) | Design | Pending |
-| MOB-03 | P1: Fullscreen (AC 4, LAN HTTP sem secure context) | Design | Pending |
-| MOB-04 | P1: Câmera viva (AC 1–2, follow + retorno) | Design | Pending |
-| MOB-05 | P1: Câmera viva (AC 3–4, ênfase + passeio de celebração) | Design | Pending |
-| MOB-06 | P1: Câmera viva (AC 5–6, raycast por frame + sem controle manual) | Design | Pending |
-| MOB-07 | P1: Câmera viva (AC 7, módulo puro + hook) | Design | Pending |
-| MOB-08 | P2: Qualidade mobile (AC 1–3) | Design | Pending |
+| MOB-01 | P1: Fullscreen (AC 1–2, fullscreen + best-effort lock) | Design | Pending |
+| MOB-02 | P1: Fullscreen (AC 3, 5, portrait overlay + pause) | Design | Pending |
+| MOB-03 | P1: Fullscreen (AC 4, LAN HTTP without secure context) | Design | Pending |
+| MOB-04 | P1: Living camera (AC 1–2, follow + return) | Design | Pending |
+| MOB-05 | P1: Living camera (AC 3–4, emphasis + celebration tour) | Design | Pending |
+| MOB-06 | P1: Living camera (AC 5–6, per-frame raycast + no manual control) | Design | Pending |
+| MOB-07 | P1: Living camera (AC 7, pure module + hook) | Design | Pending |
+| MOB-08 | P2: Mobile quality (AC 1–3) | Design | Pending |
 
-**Coverage:** 8 total, 0 mapped to tasks, 8 unmapped ⚠️ (pré-design)
+**Coverage:** 8 total, 0 mapped to tasks, 8 unmapped ⚠️ (pre-design)
 
 ---
 
 ## Success Criteria
 
-- [ ] Criança joga no celular via link, tela cheia paisagem, do início ao fim de uma rodada, sem interação de adulto além de abrir o link e tocar play.
-- [ ] Câmera se move em todos os momentos-chave e nunca deixa a criança "perdida" (diorama sempre restaurado ao ficar ocioso).
-- [ ] Nenhuma regressão: suite Vitest verde; cenários e2e existentes passam (cenário 05 atualizado para o novo comportamento de retrato).
+- [ ] Child plays on mobile via link, full landscape screen, from start to end of a round, with no adult interaction beyond opening the link and tapping play.
+- [ ] Camera moves at every key moment and never leaves the child "lost" (diorama always restored when idle).
+- [ ] No regression: Vitest suite green; existing e2e scenarios pass (scenario 05 updated for the new portrait behavior).

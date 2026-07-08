@@ -1,4 +1,4 @@
-# Progresso e Vitória — Context
+# Progress and Victory — Context
 
 **Gathered:** 2026-07-08
 **Spec:** `.specs/features/progresso-e-vitoria/spec.md`
@@ -8,57 +8,57 @@
 
 ## Feature Boundary
 
-Dar um objetivo final ao jogo: um HUD de progresso no topo da tela (sem texto) e um
-momento de vitória ao completar a última rodada, adequado a uma criança de 4 anos,
-com botão gigante para jogar de novo.
+Give the game a final objective: a progress HUD at the top of the screen (no text) and a
+victory moment upon completing the last round, suitable for a 4-year-old,
+with a giant button to play again.
 
 ---
 
 ## Implementation Decisions
 
-### Meta de vitória
+### Victory goal
 
-- O jogo completo tem **3 rodadas** (6 + 9 + 12 = 27 brinquedos).
-- Completar a rodada 3 dispara a **vitória** (não existe rodada 4).
+- The complete game has **3 rounds** (6 + 9 + 12 = 27 toys).
+- Completing round 3 triggers **victory** (there is no round 4).
 
-### Progresso no topo
+### Progress at the top
 
-- **Barra + estrelas** ("micro + macro"): a barra enche um pouco a cada brinquedo
-  guardado (recompensa imediata); uma **estrela por rodada** acende quando a rodada
-  é completada.
-- Preview escolhido pelo usuário: `⭐ ⭐ ☆  ▓▓▓▓▓▓░░░░░░` no topo da tela.
-- Sem texto (regra existente do projeto: UI sem texto, exceto erro WebGL).
+- **Bar + stars** ("micro + macro"): the bar fills a bit with each toy
+  stored (immediate reward); one **star per round** lights up when the round
+  is completed.
+- Preview chosen by the user: `⭐ ⭐ ☆  ▓▓▓▓▓▓░░░░░░` at the top of the screen.
+- No text (existing project rule: UI without text, except WebGL error).
 
-### Vitória
+### Victory
 
-- **Festa + botão de jogar de novo**: celebração grande — Bluey dança, confete/estrelas
-  na cena 3D — e depois um **botão gigante sem texto** (ícone ▶/↻) para recomeçar.
-  A criança decide quando jogar de novo.
+- **Party + play again button**: a big celebration — Bluey dances, confetti/stars
+  in the 3D scene — followed by a **giant textless button** (▶/↻ icon) to
+  restart. The child decides when to play again.
 
-### Persistência
+### Persistence
 
-- **Salva no meio, zera na vitória**: fechar o jogo no meio mantém a rodada salva
-  (comportamento atual); vencer limpa o storage — a próxima sessão começa da rodada 1.
+- **Saves midway, clears on victory**: closing the game midway keeps the round saved
+  (current behavior); winning clears the storage — the next session starts at round 1.
 
 ### Agent's Discretion
 
-- Semântica exata da barra (por rodada vs. jogo inteiro) — decidido: **por rodada**
-  (zera a cada rodada nova; estrelas carregam o macro). Registrado como assumption.
-- Duração/forma exata da celebração de vitória e momento em que o botão aparece.
-- Tratamento de saves antigos com rodada > 3.
+- Exact semantics of the bar (per round vs. whole game) — decided: **per round**
+  (resets every new round; stars carry the macro state). Logged as an assumption.
+- Exact duration/shape of the victory celebration and the moment the button appears.
+- Handling of old saves with round > 3.
 
 ### Declined / Undiscussed Gray Areas → Assumptions
 
-Nenhuma área foi recusada; as discretions acima estão registradas na seção
-Assumptions & Open Questions da spec.
+No area was declined; the discretions above are logged in the
+Assumptions & Open Questions section of the spec.
 
 ---
 
 ## Specific References
 
-- Preview ASCII do HUD escolhido pelo usuário (barra + estrelas no topo).
-- Coerência com o padrão do projeto: overlays DOM (start-overlay, transition-overlay),
-  feedback 3D via `feedback.js`, lógica pura em `game.js` (AD-004).
+- ASCII preview of the HUD chosen by the user (bar + stars at the top).
+- Consistency with the project pattern: DOM overlays (start-overlay, transition-overlay),
+  3D feedback via `feedback.js`, pure logic in `game.js` (AD-004).
 
 ---
 

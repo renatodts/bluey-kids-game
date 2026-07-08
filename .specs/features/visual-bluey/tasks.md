@@ -15,47 +15,47 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 ## Test Coverage Matrix
 
-> Generated from codebase sampling (`src/game.js` + `src/game.test.js`, precedente de `hora-de-guardar/tasks.md`). Guidelines found: nenhum `AGENTS.md`/`CLAUDE.md`/`CONTRIBUTING.md` no repo — convenção inferida do código existente (AD-004: lógica pura testada, renderização validada manual/e2e).
+> Generated from codebase sampling (`src/game.js` + `src/game.test.js`, precedent from `hora-de-guardar/tasks.md`). Guidelines found: no `AGENTS.md`/`CLAUDE.md`/`CONTRIBUTING.md` in the repo — convention inferred from existing code (AD-004: pure logic tested, rendering validated manually/e2e).
 
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | ---------- | ------------------- | ---------------------- | ------------------ | ------------- |
-| Lógica de transição (`src/transitions.js`) — DOM injetado, sem `three` | unit (Vitest) | Todos os branches; 1:1 com AC VIS-06/07 (`open`/`close`/`state`/`isBlocking`/não-sobreposição); overlay mockado (objeto com `.animate()` stub), sem jsdom | `src/*.test.js` | `npm test` |
-| Módulos de renderização (`src/materials.js`, `src/room.js`, `src/scene.js`, `src/boxes.js`, `src/toys.js`, `src/bluey.js`, `src/feedback.js`) | none | — (build gate; comportamento coberto pelos fluxos E2E, mesmo padrão de `hora-de-guardar`) | — | `npm run build` |
-| Fluxos integrados (abertura, Bluey reagindo, transição entre rodadas) | e2e (Playwright MCP, prompt-guided, AD-006) | Cenários cobrindo AC VIS-01..07 via `window.__game` hook (`bluey.source`, `bluey.mode`, `transition`) + screenshots | `e2e/scenarios/*.md` | Executar cenário via Playwright MCP contra `vite preview` |
+| Transition logic (`src/transitions.js`) — injected DOM, no `three` | unit (Vitest) | All branches; 1:1 with AC VIS-06/07 (`open`/`close`/`state`/`isBlocking`/no-overlap); overlay mocked (object with a `.animate()` stub), no jsdom | `src/*.test.js` | `npm test` |
+| Rendering modules (`src/materials.js`, `src/room.js`, `src/scene.js`, `src/boxes.js`, `src/toys.js`, `src/bluey.js`, `src/feedback.js`) | none | — (build gate; behavior covered by E2E flows, same pattern as `hora-de-guardar`) | — | `npm run build` |
+| Integrated flows (opening, Bluey reacting, transition between rounds) | e2e (Playwright MCP, prompt-guided, AD-006) | Scenarios covering AC VIS-01..07 via the `window.__game` hook (`bluey.source`, `bluey.mode`, `transition`) + screenshots | `e2e/scenarios/*.md` | Run the scenario via Playwright MCP against `vite preview` |
 
 ## Gate Check Commands
 
-> Reusa o padrão já validado em `hora-de-guardar/tasks.md`.
+> Reuses the pattern already validated in `hora-de-guardar/tasks.md`.
 
 | Gate Level | When to Use | Command |
 | ---------- | ----------- | ------- |
-| Quick | Tasks com testes unitários (`transitions.js`) | `npm test` |
-| Build | Tasks só de renderização/config | `npm run build && npm test` |
-| Full | Tasks de fluxo integrado | `npm run build && npm test` + executar o(s) cenário(s) E2E da task via Playwright MCP |
+| Quick | Tasks with unit tests (`transitions.js`) | `npm test` |
+| Build | Rendering/config-only tasks | `npm run build && npm test` |
+| Full | Integrated-flow tasks | `npm run build && npm test` + run the task's E2E scenario(s) via Playwright MCP |
 
 ---
 
 ## Execution Plan
 
-### Phase 1: Palco — materiais, sala, luz e sombra
+### Phase 1: Stage — materials, room, light and shadow
 
 ```
 T1 → T2 → T3 → T4 → T5
 ```
 
-### Phase 2: Bluey — personagem 3D
+### Phase 2: Bluey — 3D character
 
 ```
 T6 → T7 → T8
 ```
 
-### Phase 3: Transições estilo desenho
+### Phase 3: Cartoon-style transitions
 
 ```
 T9 → T10
 ```
 
-### Phase 4: Revisão E2E
+### Phase 4: E2E review
 
 ```
 T11
@@ -65,21 +65,21 @@ T11
 
 ## Task Breakdown
 
-### T1: Criar `materials.js` (fábrica de material toon)
+### T1: Create `materials.js` (toon material factory)
 
-**What**: Módulo com `GRADIENT_MAP` (DataTexture 3 bandas) e `toonMaterial(color, extra)` compartilhados por todo o projeto.
+**What**: Module with `GRADIENT_MAP` (3-band DataTexture) and `toonMaterial(color, extra)` shared across the whole project.
 **Where**: `src/materials.js`
 **Depends on**: None
-**Reuses**: Nenhum (nova base) — segue o padrão de fábrica simples de `toys.js`
+**Reuses**: None (new base) — follows the simple factory pattern of `toys.js`
 **Requirement**: VIS-01
 
 **Tools**:
-- MCP: `context7` (verificar API atual de `MeshToonMaterial`/`DataTexture` antes de codar)
+- MCP: `context7` (verify the current `MeshToonMaterial`/`DataTexture` API before coding)
 - Skill: `threejs-materials`
 
 **Done when**:
-- [x] `toonMaterial()` retorna `MeshToonMaterial` com `gradientMap` de 3 bandas
-- [x] `npm run build` passa
+- [x] `toonMaterial()` returns a `MeshToonMaterial` with a 3-band `gradientMap`
+- [x] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -87,12 +87,12 @@ T11
 
 ---
 
-### T2: Criar `room.js` (mobília da sala dos Heeler)
+### T2: Create `room.js` (Heeler living room furniture)
 
-**What**: Grupo com sofá, tapete, janela e quintal ensolarado (primitivas compostas, estilo `toys.js`), usando `toonMaterial`; exporta `ROOM_CLEARANCE`.
+**What**: Group with sofa, rug, window and sunny backyard (composed primitives, `toys.js` style), using `toonMaterial`; exports `ROOM_CLEARANCE`.
 **Where**: `src/room.js`
 **Depends on**: T1
-**Reuses**: `materials.js` (T1); padrão de composição de `toys.js`/`boxes.js`
+**Reuses**: `materials.js` (T1); composition pattern from `toys.js`/`boxes.js`
 **Requirement**: VIS-01
 
 **Tools**:
@@ -100,9 +100,9 @@ T11
 - Skill: `threejs-geometry`, `threejs-materials`
 
 **Done when**:
-- [x] `createRoom()` retorna `THREE.Group` com no mínimo sofá, tapete, janela+quintal
-- [x] `ROOM_CLEARANCE` exportado não colide com `FLOOR_BOUNDS` de `game.js` (checagem manual visual)
-- [x] `npm run build` passa
+- [x] `createRoom()` returns a `THREE.Group` with at least a sofa, rug, window+backyard
+- [x] Exported `ROOM_CLEARANCE` does not collide with `FLOOR_BOUNDS` from `game.js` (manual visual check)
+- [x] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -110,12 +110,12 @@ T11
 
 ---
 
-### T3: Integrar sala + sombras + luz quente em `scene.js`
+### T3: Integrate room + shadows + warm light into `scene.js`
 
-**What**: `scene.js` chama `createRoom()`, converte piso/parede/frames para `toonMaterial`, liga `renderer.shadowMap` (PCFSoftShadowMap), adiciona luz direcional quente com `castShadow` e frustum ajustado a `ROOM`.
-**Where**: `src/scene.js` (modifica)
+**What**: `scene.js` calls `createRoom()`, converts floor/wall/frames to `toonMaterial`, enables `renderer.shadowMap` (PCFSoftShadowMap), adds a warm directional light with `castShadow` and a frustum fitted to `ROOM`.
+**Where**: `src/scene.js` (modified)
 **Depends on**: T2
-**Reuses**: `applyArtTexture`/`themeStatus` (fallback de arte inalterado); `room.js` (T2)
+**Reuses**: `applyArtTexture`/`themeStatus` (art fallback unchanged); `room.js` (T2)
 **Requirement**: VIS-01, VIS-02
 
 **Tools**:
@@ -123,9 +123,9 @@ T11
 - Skill: `threejs-lighting`, `threejs-materials`
 
 **Done when**:
-- [x] Sala dos Heeler visível em `npm run dev` com sombras suaves e luz quente
-- [x] Frames/plaquetas continuam com fallback de cor sólida se a textura falhar (regressão zero de GUARD-08.4)
-- [x] `npm run build` passa
+- [x] Heeler living room visible in `npm run dev` with soft shadows and warm light
+- [x] Frames/plaques still fall back to solid color if the texture fails (zero regression of GUARD-08.4)
+- [x] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -133,10 +133,10 @@ T11
 
 ---
 
-### T4: Migrar `boxes.js` para material toon
+### T4: Migrate `boxes.js` to toon material
 
-**What**: Trocar `MeshLambertMaterial` por `toonMaterial()` em cesta/baú/cama; manter `castShadow`/`receiveShadow` coerentes.
-**Where**: `src/boxes.js` (modifica)
+**What**: Replace `MeshLambertMaterial` with `toonMaterial()` on the basket/chest/bed; keep `castShadow`/`receiveShadow` consistent.
+**Where**: `src/boxes.js` (modified)
 **Depends on**: T1
 **Reuses**: `materials.js` (T1)
 **Requirement**: VIS-01
@@ -146,8 +146,8 @@ T11
 - Skill: `threejs-materials`
 
 **Done when**:
-- [x] Caixas usam `toonMaterial`; nenhuma mudança de posição/`snapRadius`/`userData.boxType` (mecânica intacta)
-- [x] `npm run build` passa
+- [x] Boxes use `toonMaterial`; no change to position/`snapRadius`/`userData.boxType` (mechanic intact)
+- [x] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -155,10 +155,10 @@ T11
 
 ---
 
-### T5: Migrar `toys.js` para material toon
+### T5: Migrate `toys.js` to toon material
 
-**What**: Trocar `MeshLambertMaterial` por `toonMaterial()` em ball/block/plush.
-**Where**: `src/toys.js` (modifica)
+**What**: Replace `MeshLambertMaterial` with `toonMaterial()` on ball/block/plush.
+**Where**: `src/toys.js` (modified)
 **Depends on**: T1
 **Reuses**: `materials.js` (T1)
 **Requirement**: VIS-01
@@ -168,8 +168,8 @@ T11
 - Skill: `threejs-materials`
 
 **Done when**:
-- [x] Brinquedos usam `toonMaterial`; `userData.type`/`userData.toyId` inalterados (mecânica intacta)
-- [x] `npm run build` passa
+- [x] Toys use `toonMaterial`; `userData.type`/`userData.toyId` unchanged (mechanic intact)
+- [x] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -177,12 +177,12 @@ T11
 
 ---
 
-### T6: Criar `bluey.js` — Bluey procedural (fallback, AD-008)
+### T6: Create `bluey.js` — procedural Bluey (fallback, AD-008)
 
-**What**: `createBluey({scene, cornerPosition, centerPosition})` com modelo procedural low-poly (composição de primitivas, estilo `toys.js`) e máquina de estados idle/cheer/dance (tween próprio, padrão `feedback.js`); `source: 'procedural'` fixo nesta task.
+**What**: `createBluey({scene, cornerPosition, centerPosition})` with a procedural low-poly model (composition of primitives, `toys.js` style) and an idle/cheer/dance state machine (own tween, `feedback.js` pattern); `source: 'procedural'` fixed in this task.
 **Where**: `src/bluey.js`
 **Depends on**: T1
-**Reuses**: `materials.js` (T1); padrão de tween de `feedback.js` (`addTween`/`cancel`); padrão de composição de `toys.js`
+**Reuses**: `materials.js` (T1); tween pattern from `feedback.js` (`addTween`/`cancel`); composition pattern from `toys.js`
 **Requirement**: VIS-03, VIS-05
 
 **Tools**:
@@ -190,10 +190,10 @@ T11
 - Skill: `threejs-geometry`, `threejs-animation`, `threejs-materials`
 
 **Done when**:
-- [x] `bluey.cheer()` reinicia corretamente se chamado durante um cheer em andamento (AC VIS-03.6, checado manualmente disparando duas vezes seguidas)
-- [x] `bluey.danceAt(pos, duration)` desloca ao centro e `returnToCorner()` volta à posição original
-- [x] Bluey nunca é adicionada ao array `toys` do raycast de arrasto (AC VIS-03.5 — checagem de código)
-- [x] `npm run build` passa
+- [x] `bluey.cheer()` restarts correctly when called during an in-progress cheer (AC VIS-03.6, checked manually by firing it twice in a row)
+- [x] `bluey.danceAt(pos, duration)` moves to the center and `returnToCorner()` returns to the original position
+- [x] Bluey is never added to the drag raycast's `toys` array (AC VIS-03.5 — code check)
+- [x] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -201,12 +201,12 @@ T11
 
 ---
 
-### T7: Adicionar carregamento GLTF com fallback em `bluey.js`
+### T7: Add GLTF loading with fallback in `bluey.js`
 
-**What**: `loadBlueyModel()` tenta `GLTFLoader` em `/bluey/bluey.glb`; sucesso → substitui o procedural, `source: 'gltf'`; falha/ausência → mantém procedural (T6), `source: 'procedural'`; animação sempre procedural (bob/squash) independente de clipes do GLTF (edge case da spec).
-**Where**: `src/bluey.js` (modifica)
+**What**: `loadBlueyModel()` tries `GLTFLoader` on `/bluey/bluey.glb`; success → replaces the procedural build, `source: 'gltf'`; failure/absence → keeps the procedural build (T6), `source: 'procedural'`; animation is always procedural (bob/squash) regardless of the GLTF's clips (spec edge case).
+**Where**: `src/bluey.js` (modified)
 **Depends on**: T6
-**Reuses**: Padrão de fallback de `applyArtTexture` (`scene.js:23`), adaptado para modelo 3D (ver skill `threejs-loaders`)
+**Reuses**: Fallback pattern from `applyArtTexture` (`scene.js:23`), adapted for a 3D model (see skill `threejs-loaders`)
 **Requirement**: VIS-04
 
 **Tools**:
@@ -214,10 +214,10 @@ T11
 - Skill: `threejs-loaders`
 
 **Done when**:
-- [x] Com `assets/bluey/bluey.glb` ausente: `bluey.source === 'procedural'`, jogo funcional, `console.warn` (padrão GUARD-08.4)
-- [x] Se o arquivo `assets/bluey/bluey.glb` já estiver presente (baixado manualmente pelo usuário — ver `docs/references.md`): `bluey.source === 'gltf'` e o modelo aparece na cena
-- [x] `npm run build` passa
-- [x] **Nota de execução**: se `assets/bluey/bluey.glb` ainda não existir no momento desta task, o caminho GLTF fica implementado e testado só pelo ramo de fallback; validar o ramo de sucesso assim que o arquivo chegar (não bloqueia as próximas tasks)
+- [x] With `assets/bluey/bluey.glb` absent: `bluey.source === 'procedural'`, game functional, `console.warn` (GUARD-08.4 pattern)
+- [x] If the `assets/bluey/bluey.glb` file is already present (manually downloaded by the user — see `docs/references.md`): `bluey.source === 'gltf'` and the model appears in the scene
+- [x] `npm run build` passes
+- [x] **Execution note**: if `assets/bluey/bluey.glb` doesn't yet exist at the time of this task, the GLTF path is implemented and tested only via the fallback branch; validate the success branch as soon as the file arrives (does not block the following tasks)
 
 **Tests**: none
 **Gate**: build
@@ -225,12 +225,12 @@ T11
 
 ---
 
-### T8: Integrar Bluey em `main.js` (hook + gatilhos) e remover cheer 2D antigo
+### T8: Integrate Bluey into `main.js` (hook + triggers) and remove the old 2D cheer
 
-**What**: `main.js` cria `bluey`; `feedback.stored()` chama `bluey.cheer()` em vez de `showCheer()`; `roundComplete` chama `bluey.danceAt(center, 3)`; remove `createCheer`/`showCheer`/`cheer` de `feedback.js` e `themeStatus.cheerLoaded`/`cheerVisible` de `scene.js`; hook `window.__game.state()` ganha `bluey: {source, mode}`.
-**Where**: `src/main.js`, `src/feedback.js`, `src/scene.js` (modifica)
+**What**: `main.js` creates `bluey`; `feedback.stored()` calls `bluey.cheer()` instead of `showCheer()`; `roundComplete` calls `bluey.danceAt(center, 3)`; removes `createCheer`/`showCheer`/`cheer` from `feedback.js` and `themeStatus.cheerLoaded`/`cheerVisible` from `scene.js`; the `window.__game.state()` hook gains `bluey: {source, mode}`.
+**Where**: `src/main.js`, `src/feedback.js`, `src/scene.js` (modified)
 **Depends on**: T7
-**Reuses**: Estrutura de composição existente de `main.js`; `createFeedback` estendido via parâmetro `bluey` injetado (mesmo padrão de injeção de `floorY`)
+**Reuses**: Existing composition structure of `main.js`; `createFeedback` extended via an injected `bluey` parameter (same injection pattern as `floorY`)
 **Requirement**: VIS-03, VIS-04
 
 **Tools**:
@@ -238,24 +238,24 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [x] Acertar um brinquedo dispara `bluey.cheer()` (checado em `npm run dev`)
-- [x] Completar rodada dispara `bluey.danceAt()` junto da chuva de confete existente
-- [x] `window.__game.state().bluey` retorna `{source, mode}` coerente
-- [x] `themeStatus.cheerLoaded`/`cheerVisible` removidos sem quebrar `framesLoaded`/`plaquesLoaded`
-- [x] `npm run build && npm test` passa
+- [x] Getting a toy right triggers `bluey.cheer()` (checked in `npm run dev`)
+- [x] Completing a round triggers `bluey.danceAt()` alongside the existing confetti rain
+- [x] `window.__game.state().bluey` returns a consistent `{source, mode}`
+- [x] `themeStatus.cheerLoaded`/`cheerVisible` removed without breaking `framesLoaded`/`plaquesLoaded`
+- [x] `npm run build && npm test` passes
 
-**Tests**: none (fluxo coberto no E2E de T11)
+**Tests**: none (flow covered by the E2E in T11)
 **Gate**: build
 **Commit**: `feat(visual): wire Bluey reactions into gameplay, retire 2D cheer billboard`
 
 ---
 
-### T9: Criar `transitions.js` (iris DOM) + overlay em `index.html`
+### T9: Create `transitions.js` (DOM iris) + overlay in `index.html`
 
-**What**: `createTransitions(overlayEl)` com `open()`/`close()`/`state`/`isBlocking()`; usa `Element.animate()` (Web Animations API) para o efeito iris via `clip-path`; guarda de não sobreposição (chamada durante transição ativa retorna a Promise em andamento). Novo `<div id="transition-overlay">` em `index.html`.
-**Where**: `src/transitions.js`, `index.html` (modifica)
-**Depends on**: None (paralelo às Phases 1-2, mas sequenciado aqui por ordem de fases)
-**Reuses**: Nenhum componente 3D — DOM puro, decisão de design explícita
+**What**: `createTransitions(overlayEl)` with `open()`/`close()`/`state`/`isBlocking()`; uses `Element.animate()` (Web Animations API) for the iris effect via `clip-path`; non-overlap guard (a call made during an active transition returns the in-progress Promise). New `<div id="transition-overlay">` in `index.html`.
+**Where**: `src/transitions.js`, `index.html` (modified)
+**Depends on**: None (parallel to Phases 1-2, but sequenced here to keep phase order)
+**Reuses**: No 3D component — pure DOM, explicit design decision
 **Requirement**: VIS-06, VIS-07
 
 **Tools**:
@@ -263,9 +263,9 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [x] Testes unitários cobrem: `open()`/`close()` resolvem e mudam `state` corretamente; chamada repetida durante transição ativa não inicia uma segunda animação (AC VIS-07.5); `isBlocking()` reflete `state !== 'none'`
-- [x] Gate passa: `npm test`
-- [x] Test count: 4+ testes passam (sem deleção silenciosa)
+- [x] Unit tests cover: `open()`/`close()` resolve and change `state` correctly; a repeated call during an active transition does not start a second animation (AC VIS-07.5); `isBlocking()` reflects `state !== 'none'`
+- [x] Gate passes: `npm test`
+- [x] Test count: 4+ tests pass (no silent deletion)
 
 **Tests**: unit
 **Gate**: quick
@@ -273,12 +273,12 @@ T11
 
 ---
 
-### T10: Integrar transições em `main.js` + gate de input em `drag.js`
+### T10: Integrate transitions into `main.js` + input gate in `drag.js`
 
-**What**: Botão play chama `transitions.open()` após remover o overlay inicial; rodada completa faz `transitions.close()` → `spawnRound()` → `transitions.open()`; `createDrag` recebe `isBlocked: () => transitions.isBlocking()`; hook ganha `window.__game.state().transition`.
-**Where**: `src/main.js` (modifica), `src/drag.js` (modifica — parâmetro `isBlocked` opcional)
+**What**: The play button calls `transitions.open()` after removing the initial overlay; round completion does `transitions.close()` → `spawnRound()` → `transitions.open()`; `createDrag` receives `isBlocked: () => transitions.isBlocking()`; the hook gains `window.__game.state().transition`.
+**Where**: `src/main.js` (modified), `src/drag.js` (modified — optional `isBlocked` parameter)
 **Depends on**: T9, T8
-**Reuses**: `transitions.js` (T9); estrutura de `handleDrop`/`spawnRound` existente
+**Reuses**: `transitions.js` (T9); existing `handleDrop`/`spawnRound` structure
 **Requirement**: VIS-06, VIS-07
 
 **Tools**:
@@ -286,23 +286,23 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [x] Tocar play mostra a transição de abertura antes do jogo ficar interativo
-- [x] Completar rodada mostra iris fechar/abrir entre a remoção dos brinquedos antigos e o spawn dos novos
-- [x] Arrastar durante uma transição não move nada (`isBlocked()` ativo)
-- [x] `npm run build && npm test` passa
+- [x] Tapping play shows the opening transition before the game becomes interactive
+- [x] Completing a round shows the iris close/open between removing the old toys and spawning the new ones
+- [x] Dragging during a transition moves nothing (`isBlocked()` active)
+- [x] `npm run build && npm test` passes
 
-**Tests**: none (fluxo coberto no E2E de T11)
+**Tests**: none (flow covered by the E2E in T11)
 **Gate**: build
 **Commit**: `feat(visual): wire opening and round transitions into gameplay`
 
 ---
 
-### T11: Revisar cenários E2E afetados (04 e 02)
+### T11: Review affected E2E scenarios (04 and 02)
 
-**What**: Reescrever `e2e/scenarios/04-tema-e-fallback.md` para assertar `bluey.source`/`bluey.mode` em vez de `theme.cheerLoaded/cheerVisible` (removidos em T8); adicionar ao `e2e/scenarios/02-rodada-completa.md` os asserts de `transition` (abre/fecha entre rodadas) e `bluey.mode === 'dance'` durante a celebração.
-**Where**: `e2e/scenarios/04-tema-e-fallback.md`, `e2e/scenarios/02-rodada-completa.md` (modifica)
+**What**: Rewrite `e2e/scenarios/04-tema-e-fallback.md` to assert `bluey.source`/`bluey.mode` instead of `theme.cheerLoaded/cheerVisible` (removed in T8); add to `e2e/scenarios/02-rodada-completa.md` the `transition` asserts (opens/closes between rounds) and `bluey.mode === 'dance'` during the celebration.
+**Where**: `e2e/scenarios/04-tema-e-fallback.md`, `e2e/scenarios/02-rodada-completa.md` (modified)
 **Depends on**: T10
-**Reuses**: Estrutura de cenário prompt-guiado existente (AD-006)
+**Reuses**: Existing prompt-guided scenario structure (AD-006)
 **Requirement**: VIS-03, VIS-04, VIS-06, VIS-07
 
 **Tools**:
@@ -310,9 +310,9 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [x] Cenário 04 verde: `bluey.source` é `'gltf'` ou `'procedural'` conforme o asset disponível; fallback de frames/plaquetas continua coberto (executado 2026-07-08 contra `vite preview`; sem `bluey.glb` → `'procedural'` conforme AD-008; nota: contra preview a simulação de falha renomeia `dist/bluey`, não `assets/bluey`)
-- [x] Cenário 02 verde: `transition` alterna `'closing'`→`'opening'`→`'none'` entre rodadas (sequência gravada via rAF); `bluey.mode === 'dance'` observado durante a celebração; input gate confirmado (nenhum `dragging` durante o iris)
-- [x] `npm run build && npm test` passa (28/28)
+- [x] Scenario 04 green: `bluey.source` is `'gltf'` or `'procedural'` depending on asset availability; frame/plaque fallback still covered (run 2026-07-08 against `vite preview`; no `bluey.glb` → `'procedural'` per AD-008; note: against preview, the failure simulation renames `dist/bluey`, not `assets/bluey`)
+- [x] Scenario 02 green: `transition` toggles `'closing'`→`'opening'`→`'none'` between rounds (sequence recorded via rAF); `bluey.mode === 'dance'` observed during the celebration; input gate confirmed (no `dragging` during the iris)
+- [x] `npm run build && npm test` passes (28/28)
 
 **Tests**: e2e
 **Gate**: full
@@ -331,9 +331,9 @@ Phase 3:  T9 ──→ T10
 Phase 4:  T11
 ```
 
-Execution é estritamente sequencial dentro de cada fase. T9 não depende de T1-T8 tecnicamente, mas é sequenciada após a Phase 2 para manter a ordem de fases simples (uma frente de trabalho por vez).
+Execution is strictly sequential within each phase. T9 doesn't technically depend on T1-T8, but it is sequenced after Phase 2 to keep the phase order simple (one workstream at a time).
 
-**Batching sugerido para Execute** (11 tasks > ~8, offer de sub-agentes será feito): Batch 1 = Phase 1 + Phase 2 (8 tasks), Batch 2 = Phase 3 + Phase 4 (3 tasks).
+**Suggested batching for Execute** (11 tasks > ~8, sub-agent offer will be made): Batch 1 = Phase 1 + Phase 2 (8 tasks), Batch 2 = Phase 3 + Phase 4 (3 tasks).
 
 ---
 
@@ -341,17 +341,17 @@ Execution é estritamente sequencial dentro de cada fase. T9 não depende de T1-
 
 | Task | Scope | Status |
 | ---- | ----- | ------ |
-| T1: `materials.js` | 1 módulo (2 exports) | ✅ Granular |
-| T2: `room.js` | 1 módulo (1 export + const) | ✅ Granular |
-| T3: Integrar sala+sombra+luz em `scene.js` | 1 arquivo, 1 conceito coeso (palco) | ✅ Granular |
-| T4: `boxes.js` → toon | 1 arquivo, troca de material | ✅ Granular |
-| T5: `toys.js` → toon | 1 arquivo, troca de material | ✅ Granular |
-| T6: Bluey procedural | 1 módulo novo, 1 conceito (personagem+estados) | ✅ Granular |
-| T7: Bluey GLTF+fallback | 1 arquivo, 1 função (`loadBlueyModel`) | ✅ Granular |
-| T8: Integração + remoção cheer 2D | 3 arquivos, 1 conceito coeso (fiação de reações) | ✅ Granular |
-| T9: `transitions.js` + overlay | 2 arquivos, 1 conceito coeso (controlador de transição) | ✅ Granular |
-| T10: Integrar transições + gate de input | 2 arquivos, 1 conceito coeso (fiação de transições) | ✅ Granular |
-| T11: Revisão E2E | 2 arquivos de cenário, 1 conceito (asserts pós-mudança visual) | ✅ Granular |
+| T1: `materials.js` | 1 module (2 exports) | ✅ Granular |
+| T2: `room.js` | 1 module (1 export + const) | ✅ Granular |
+| T3: Integrate room+shadow+light into `scene.js` | 1 file, 1 cohesive concept (stage) | ✅ Granular |
+| T4: `boxes.js` → toon | 1 file, material swap | ✅ Granular |
+| T5: `toys.js` → toon | 1 file, material swap | ✅ Granular |
+| T6: Procedural Bluey | 1 new module, 1 concept (character+states) | ✅ Granular |
+| T7: Bluey GLTF+fallback | 1 file, 1 function (`loadBlueyModel`) | ✅ Granular |
+| T8: Integration + removal of 2D cheer | 3 files, 1 cohesive concept (wiring reactions) | ✅ Granular |
+| T9: `transitions.js` + overlay | 2 files, 1 cohesive concept (transition controller) | ✅ Granular |
+| T10: Integrate transitions + input gate | 2 files, 1 cohesive concept (wiring transitions) | ✅ Granular |
+| T11: E2E review | 2 scenario files, 1 concept (post-visual-change asserts) | ✅ Granular |
 
 ---
 
@@ -359,19 +359,19 @@ Execution é estritamente sequencial dentro de cada fase. T9 não depende de T1-
 
 | Task | Depends On (task body) | Diagram Shows | Status |
 | ---- | ----------------------- | -------------- | ------ |
-| T1 | None | (início da Phase 1) | ✅ Match |
+| T1 | None | (start of Phase 1) | ✅ Match |
 | T2 | T1 | T1→T2 | ✅ Match |
 | T3 | T2 | T2→T3 | ✅ Match |
-| T4 | T1 | T1→T2→T3→T4 (sequencial na fase) | ✅ Match |
-| T5 | T1 | T4→T5 (sequencial na fase) | ✅ Match |
-| T6 | T1 | (início da Phase 2) | ✅ Match |
+| T4 | T1 | T1→T2→T3→T4 (sequential within phase) | ✅ Match |
+| T5 | T1 | T4→T5 (sequential within phase) | ✅ Match |
+| T6 | T1 | (start of Phase 2) | ✅ Match |
 | T7 | T6 | T6→T7 | ✅ Match |
 | T8 | T7 | T7→T8 | ✅ Match |
-| T9 | None | (início da Phase 3) | ✅ Match |
-| T10 | T9, T8 | T9→T10 (+ depende de T8, fase anterior) | ✅ Match |
+| T9 | None | (start of Phase 3) | ✅ Match |
+| T10 | T9, T8 | T9→T10 (+ depends on T8, previous phase) | ✅ Match |
 | T11 | T10 | T10→T11 | ✅ Match |
 
-Nenhuma dependência aponta para uma fase posterior — todas apontam para trás ou dentro da mesma fase.
+No dependency points to a later phase — all point backward or within the same phase.
 
 ---
 
@@ -379,16 +379,16 @@ Nenhuma dependência aponta para uma fase posterior — todas apontam para trás
 
 | Task | Code Layer Created/Modified | Matrix Requires | Task Says | Status |
 | ---- | ----------------------------- | ------------------ | ----------- | ------ |
-| T1 | Renderização (`materials.js`) | none | none | ✅ OK |
-| T2 | Renderização (`room.js`) | none | none | ✅ OK |
-| T3 | Renderização (`scene.js`) | none | none | ✅ OK |
-| T4 | Renderização (`boxes.js`) | none | none | ✅ OK |
-| T5 | Renderização (`toys.js`) | none | none | ✅ OK |
-| T6 | Renderização (`bluey.js`) | none | none | ✅ OK |
-| T7 | Renderização (`bluey.js`) | none | none | ✅ OK |
-| T8 | Renderização (`main.js`, `feedback.js`, `scene.js`) | none | none | ✅ OK |
-| T9 | Lógica de transição (`transitions.js`) | unit | unit | ✅ OK |
-| T10 | Renderização (`main.js`, `drag.js`) | none | none | ✅ OK |
-| T11 | Fluxo integrado (E2E) | e2e | e2e | ✅ OK |
+| T1 | Rendering (`materials.js`) | none | none | ✅ OK |
+| T2 | Rendering (`room.js`) | none | none | ✅ OK |
+| T3 | Rendering (`scene.js`) | none | none | ✅ OK |
+| T4 | Rendering (`boxes.js`) | none | none | ✅ OK |
+| T5 | Rendering (`toys.js`) | none | none | ✅ OK |
+| T6 | Rendering (`bluey.js`) | none | none | ✅ OK |
+| T7 | Rendering (`bluey.js`) | none | none | ✅ OK |
+| T8 | Rendering (`main.js`, `feedback.js`, `scene.js`) | none | none | ✅ OK |
+| T9 | Transition logic (`transitions.js`) | unit | unit | ✅ OK |
+| T10 | Rendering (`main.js`, `drag.js`) | none | none | ✅ OK |
+| T11 | Integrated flow (E2E) | e2e | e2e | ✅ OK |
 
-Nenhuma violação — todas as tasks de camada "renderização" usam `Tests: none` conforme a matriz; a única camada testável unitariamente (`transitions.js`) tem seus testes co-localizados na própria T9.
+No violations — all "rendering" layer tasks use `Tests: none` per the matrix; the only unit-testable layer (`transitions.js`) has its tests co-located in T9 itself.
