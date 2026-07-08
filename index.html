@@ -44,6 +44,115 @@
       #start-overlay.hidden {
         display: none;
       }
+      /* HUD de progresso (WIN-01..04): sem texto, nunca captura o ponteiro.
+         z-index 4: abaixo do iris (5) — a transição cobre o HUD, correto. */
+      #hud {
+        position: fixed;
+        top: 2vmin;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 2.5vmin;
+        z-index: 4;
+        pointer-events: none;
+      }
+      #hud .stars {
+        display: flex;
+        gap: 1.2vmin;
+      }
+      #hud .star {
+        width: 6vmin;
+        height: 6vmin;
+        background: rgba(255, 255, 255, 0.55);
+        clip-path: polygon(
+          50% 0%,
+          61% 35%,
+          98% 35%,
+          68% 57%,
+          79% 91%,
+          50% 70%,
+          21% 91%,
+          32% 57%,
+          2% 35%,
+          39% 35%
+        );
+        transition: background 0.4s, transform 0.4s;
+      }
+      #hud .star.lit {
+        background: #ffd166;
+        transform: scale(1.15);
+      }
+      #hud .bar {
+        width: 36vmin;
+        height: 3.2vmin;
+        border-radius: 2vmin;
+        background: rgba(255, 255, 255, 0.55);
+        overflow: hidden;
+      }
+      #hud #bar-fill {
+        width: 0%;
+        height: 100%;
+        border-radius: 2vmin;
+        background: #7bc043;
+        transition: width 0.35s ease-out;
+      }
+      /* Vitória (WIN-08/09): botão gigante de jogar de novo, sem texto.
+         O overlay em si não captura ponteiro — a festa 3D segue viva atrás. */
+      #replay-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        pointer-events: none;
+      }
+      #replay-overlay.hidden {
+        display: none;
+      }
+      #replay-button {
+        width: 30vmin;
+        height: 30vmin;
+        border: none;
+        border-radius: 50%;
+        background: #f6a531;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1vmin 0 rgba(0, 0, 0, 0.2);
+        pointer-events: auto;
+      }
+      #replay-button::after {
+        content: "";
+        display: block;
+        margin-left: 3vmin;
+        border-style: solid;
+        border-width: 7vmin 0 7vmin 12vmin;
+        border-color: transparent transparent transparent #fff;
+      }
+      /* Loader de assets: spinner sem texto enquanto GLB + texturas carregam;
+         quando o overlay ganha .ready, o spinner sai e o play aparece. */
+      #loading-spinner {
+        width: 18vmin;
+        height: 18vmin;
+        border-radius: 50%;
+        border: 2.4vmin solid rgba(255, 255, 255, 0.45);
+        border-top-color: #f6a531;
+        animation: loading-spin 0.9s linear infinite;
+      }
+      @keyframes loading-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      #start-overlay:not(.ready) #play-button {
+        display: none;
+      }
+      #start-overlay.ready #loading-spinner {
+        display: none;
+      }
       #play-button {
         width: 30vmin;
         height: 30vmin;
@@ -68,7 +177,19 @@
   </head>
   <body>
     <canvas id="game-canvas"></canvas>
+    <div id="hud" aria-hidden="true">
+      <div class="stars">
+        <span class="star"></span>
+        <span class="star"></span>
+        <span class="star"></span>
+      </div>
+      <div class="bar"><div id="bar-fill"></div></div>
+    </div>
+    <div id="replay-overlay" class="hidden">
+      <button id="replay-button" aria-label="Jogar de novo"></button>
+    </div>
     <div id="start-overlay">
+      <div id="loading-spinner" role="progressbar" aria-label="Carregando"></div>
       <button id="play-button" aria-label="Jogar"></button>
     </div>
     <div id="transition-overlay"></div>
