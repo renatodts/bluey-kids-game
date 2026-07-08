@@ -1,10 +1,11 @@
-// Composição: cena + jogo + arrasto + hook de teste. (T8)
+// Composição: cena + jogo + arrasto + feedback + hook de teste. (T8/T9)
 import * as THREE from 'three';
 import { createScene } from './scene.js';
 import { createGame } from './game.js';
 import { createToyMesh } from './toys.js';
 import { createBoxes } from './boxes.js';
 import { createDrag } from './drag.js';
+import { createFeedback } from './feedback.js';
 
 const overlay = document.getElementById('start-overlay');
 const playButton = document.getElementById('play-button');
@@ -31,6 +32,8 @@ const game = createGame(storage);
 
 const boxes = createBoxes();
 for (const box of boxes) scene.add(box.mesh);
+
+const feedback = createFeedback({ scene, floorY });
 
 // Referência viva compartilhada com o drag — mutar no lugar, nunca reatribuir.
 const toyMeshes = [];
@@ -106,22 +109,20 @@ function handleDrop(toyId, pos, screenXY) {
   if (!mesh) return;
   const box = nearestBox(pos, screenXY);
   if (!box) {
-    // Fora de qualquer caixa: assenta no chão onde foi solto. (GUARD-03)
+    // Fora de qualquer caixa: assenta suavemente no chão onde foi solto. (GUARD-03)
     game.dropToy(toyId);
-    mesh.position.set(pos.x, floorY, pos.z);
-    mesh.updateMatrixWorld(true);
+    feedback.settle(mesh, pos);
     return;
   }
   const result = game.tryStore(toyId, box.type);
   if (result === 'stored') {
-    // Placeholder imediato — animação de sugar/pulo entra na T9. (GUARD-02)
-    scene.remove(mesh);
+    // Sugar para a caixa com pulo; sai do raycast já (estado é 'stored'). (GUARD-02)
     toyMeshes.splice(toyMeshes.indexOf(mesh), 1);
+    feedback.stored(mesh, box);
   } else {
-    // Caixa errada: devolve ao spawn. Quique animado entra na T9. (GUARD-03)
+    // Caixa errada: balança a caixa e devolve o brinquedo quicando ao spawn. (GUARD-03)
     const toy = game.getState().toys.find((t) => t.id === toyId);
-    mesh.position.set(toy.spawn.x, floorY, toy.spawn.z);
-    mesh.updateMatrixWorld(true);
+    feedback.rejected(mesh, box, toy.spawn);
   }
 }
 
@@ -130,7 +131,12 @@ createDrag({
   canvas,
   toys: toyMeshes,
   floorY,
-  onPick: (toyId) => game.pickToy(toyId),
+  onPick: (toyId) => {
+    if (!game.pickToy(toyId)) return false;
+    // Pegou em pleno quique/assentamento? Cancela o tween — animação nunca trava o arrasto.
+    feedback.cancel(findToyMesh(toyId));
+    return true;
+  },
   onDrop: handleDrop,
 });
 
@@ -157,6 +163,10 @@ spawnRound();
 // raycast e screenPos já no primeiro tick (antes do primeiro frame do loop).
 renderer.render(scene, camera);
 
-renderer.setAnimationLoop(() => {
+let lastTime = 0;
+renderer.setAnimationLoop((time) => {
+  const dt = Math.min((time - lastTime) / 1000, 0.05); // clamp: aba dormiu ≠ salto de animação
+  lastTime = time;
+  feedback.update(dt);
   renderer.render(scene, camera);
 });
