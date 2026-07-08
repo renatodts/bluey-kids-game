@@ -1,8 +1,8 @@
 // Bluey procedural: personagem de torcida com estados idle/cheer/dance.
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { toonMaterial } from './materials.js';
 
-const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 
 const DEFAULT_CORNER = new THREE.Vector3(5.8, 0, -2.1);
@@ -109,10 +109,44 @@ function buildProceduralBluey() {
   return markShadows(root);
 }
 
+function loadGLTF(url) {
+  const loader = new GLTFLoader();
+  return new Promise((resolve, reject) => {
+    loader.load(url, resolve, undefined, reject);
+  });
+}
+
+function fitModelToBlueyScale(object) {
+  markShadows(object);
+  const box = new THREE.Box3().setFromObject(object);
+  const size = box.getSize(new THREE.Vector3());
+  if (size.y > 0) {
+    const scale = 1.85 / size.y;
+    object.scale.multiplyScalar(scale);
+    box.setFromObject(object);
+  }
+  const center = box.getCenter(new THREE.Vector3());
+  const minY = box.min.y;
+  object.position.sub(new THREE.Vector3(center.x, minY, center.z));
+  object.rotation.y = Math.PI;
+  return object;
+}
+
+export async function loadBlueyModel() {
+  try {
+    const gltf = await loadGLTF('/bluey/bluey.glb');
+    return { object: fitModelToBlueyScale(gltf.scene), animations: gltf.animations || [], source: 'gltf' };
+  } catch {
+    console.warn('[visual-bluey] modelo GLTF indisponível — usando Bluey procedural');
+    return { object: buildProceduralBluey(), animations: [], source: 'procedural' };
+  }
+}
+
 export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosition = DEFAULT_CENTER } = {}) {
   const root = new THREE.Group();
   root.name = 'bluey-character';
-  const model = buildProceduralBluey();
+  let model = buildProceduralBluey();
+  let modelBaseScale = model.scale.clone();
   root.add(model);
   root.position.copy(cornerPosition);
   if (scene) scene.add(root);
@@ -125,6 +159,18 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
   let cheerTime = 0;
   let danceDuration = 0;
   let source = 'procedural';
+
+  loadBlueyModel().then((loaded) => {
+    root.remove(model);
+    model = loaded.object;
+    modelBaseScale = model.scale.clone();
+    root.add(model);
+    source = loaded.source;
+  });
+
+  function setModelScale(x, y, z) {
+    model.scale.set(modelBaseScale.x * x, modelBaseScale.y * y, modelBaseScale.z * z);
+  }
 
   function addTween(target, duration, onUpdate, onComplete) {
     tweens.push({ target, duration, elapsed: 0, onUpdate, onComplete });
@@ -157,9 +203,9 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
       cheerTime += dt;
       const bounce = Math.abs(Math.sin(modeTime * Math.PI * 4));
       root.position.y = bounce * 0.22;
-      model.scale.set(1 + bounce * 0.08, 1 - bounce * 0.04, 1 + bounce * 0.08);
-      leftArm.rotation.z = 1.25 + Math.sin(modeTime * 14) * 0.22;
-      rightArm.rotation.z = -1.25 - Math.sin(modeTime * 14) * 0.22;
+      setModelScale(1 + bounce * 0.08, 1 - bounce * 0.04, 1 + bounce * 0.08);
+      if (leftArm) leftArm.rotation.z = 1.25 + Math.sin(modeTime * 14) * 0.22;
+      if (rightArm) rightArm.rotation.z = -1.25 - Math.sin(modeTime * 14) * 0.22;
       if (cheerTime >= CHEER_DURATION) {
         mode = 'idle';
         modeTime = 0;
@@ -173,9 +219,9 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
       danceDuration -= dt;
       root.position.y = Math.abs(Math.sin(modeTime * Math.PI * 3)) * 0.16;
       root.rotation.y = -0.55 + Math.sin(modeTime * 5) * 0.35;
-      model.scale.set(1.04, 0.96 + Math.sin(modeTime * 12) * 0.04, 1.04);
-      leftArm.rotation.z = 0.95 + Math.sin(modeTime * 8) * 0.45;
-      rightArm.rotation.z = -0.95 + Math.sin(modeTime * 8 + Math.PI) * 0.45;
+      setModelScale(1.04, 0.96 + Math.sin(modeTime * 12) * 0.04, 1.04);
+      if (leftArm) leftArm.rotation.z = 0.95 + Math.sin(modeTime * 8) * 0.45;
+      if (rightArm) rightArm.rotation.z = -0.95 + Math.sin(modeTime * 8 + Math.PI) * 0.45;
       if (danceDuration <= 0) returnToCorner();
       return;
     }
@@ -183,9 +229,9 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
     const bob = Math.sin(modeTime * 2.6) * 0.035;
     root.position.y = bob;
     root.rotation.y = -0.55;
-    model.scale.set(1, 1 + bob * 0.7, 1);
-    leftArm.rotation.z = 0.5 + Math.sin(modeTime * 2.2) * 0.06;
-    rightArm.rotation.z = -0.5 - Math.sin(modeTime * 2.2) * 0.06;
+    setModelScale(1, 1 + bob * 0.7, 1);
+    if (leftArm) leftArm.rotation.z = 0.5 + Math.sin(modeTime * 2.2) * 0.06;
+    if (rightArm) rightArm.rotation.z = -0.5 - Math.sin(modeTime * 2.2) * 0.06;
   }
 
   function cheer() {

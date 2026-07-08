@@ -214,10 +214,10 @@ T11
 - Skill: `threejs-loaders`
 
 **Done when**:
-- [ ] Com `assets/bluey/bluey.glb` ausente: `bluey.source === 'procedural'`, jogo funcional, `console.warn` (padrão GUARD-08.4)
-- [ ] Se o arquivo `assets/bluey/bluey.glb` já estiver presente (baixado manualmente pelo usuário — ver `docs/references.md`): `bluey.source === 'gltf'` e o modelo aparece na cena
-- [ ] `npm run build` passa
-- [ ] **Nota de execução**: se `assets/bluey/bluey.glb` ainda não existir no momento desta task, o caminho GLTF fica implementado e testado só pelo ramo de fallback; validar o ramo de sucesso assim que o arquivo chegar (não bloqueia as próximas tasks)
+- [x] Com `assets/bluey/bluey.glb` ausente: `bluey.source === 'procedural'`, jogo funcional, `console.warn` (padrão GUARD-08.4)
+- [x] Se o arquivo `assets/bluey/bluey.glb` já estiver presente (baixado manualmente pelo usuário — ver `docs/references.md`): `bluey.source === 'gltf'` e o modelo aparece na cena
+- [x] `npm run build` passa
+- [x] **Nota de execução**: se `assets/bluey/bluey.glb` ainda não existir no momento desta task, o caminho GLTF fica implementado e testado só pelo ramo de fallback; validar o ramo de sucesso assim que o arquivo chegar (não bloqueia as próximas tasks)
 
 **Tests**: none
 **Gate**: build
