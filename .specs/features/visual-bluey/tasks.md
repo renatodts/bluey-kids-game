@@ -146,8 +146,8 @@ T11
 - Skill: `threejs-materials`
 
 **Done when**:
-- [ ] Caixas usam `toonMaterial`; nenhuma mudança de posição/`snapRadius`/`userData.boxType` (mecânica intacta)
-- [ ] `npm run build` passa
+- [x] Caixas usam `toonMaterial`; nenhuma mudança de posição/`snapRadius`/`userData.boxType` (mecânica intacta)
+- [x] `npm run build` passa
 
 **Tests**: none
 **Gate**: build
