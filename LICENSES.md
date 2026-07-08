@@ -20,7 +20,7 @@ Código próprio do projeto (`src/`, `e2e/`, configuração), sem licença de c�
 
 Baixadas do media hub oficial da Bluey (Ludo Studio / BBC Studios / Disney) e tratadas para ≤1024px. São propriedade dos respectivos detentores de marca e direitos autorais.
 
-**Uso restrito a ambiente privado/doméstico (AD-005).** Publicar um jogo com esta arte exige licenciamento do detentor da IP — sem essa autorização, este repositório e seus assets **não podem ser publicados nem distribuídos**. Ver `docs/references.md` para mais contexto.
+**Uso restrito a ambiente privado/doméstico (AD-005).** Publicar um jogo com esta arte exige licenciamento do detentor da IP — sem essa autorização, este repositório e seus assets **não podem ser publicados nem distribuídos**.
 
 O jogo funciona sem nenhum arquivo desta pasta: sem eles, cai em fallback de cor sólida/Bluey procedural (GUARD-08.4 / AD-008).
 

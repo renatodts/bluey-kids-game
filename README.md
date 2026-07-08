@@ -31,7 +31,6 @@ Abra o endereço impresso pelo Vite e clique em jogar (o áudio só é destravad
 ```
 src/            lógica e cena do jogo (game.js é puro/testável; o resto é renderização)
 assets/         arte e modelo 3D da Bluey (uso privado, ver LICENSES.md)
-docs/           notas de pesquisa e referências de assets
 e2e/scenarios/  cenários end-to-end em linguagem natural, executados via Playwright MCP
 .specs/         specs de features, decisões de arquitetura (STATE.md) e lições aprendidas
 ```
