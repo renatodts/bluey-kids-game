@@ -195,9 +195,9 @@ createDrag({
   floorY,
   onPick: (toyId) => {
     if (!game.pickToy(toyId)) return false;
-    // Dedo no brinquedo = arrasto; a câmera não gira junto. (registrado antes
-    // dos listeners do OrbitControls, então desabilitar aqui vale já para
-    // este mesmo pointerdown)
+    // Dedo no brinquedo = arrasto; a câmera não gira junto. (listeners do drag
+    // registrados antes dos da lib de câmera, então desabilitar aqui já vale
+    // para este mesmo pointerdown)
     controls.enabled = false;
     // Pegou em pleno quique/assentamento? Cancela o tween — animação nunca trava o arrasto.
     feedback.cancel(findToyMesh(toyId));
@@ -208,12 +208,11 @@ createDrag({
   isBlocked: () => transitions.isBlocking() || intro.active,
 });
 
-// Gestos de câmera: 1 dedo gira (quando o toque não começou num brinquedo);
-// 2 dedos fazem pan + pinch-zoom + giro (twist) num gesto só, estilo app de
-// mapa. Mouse: esquerdo gira, roda dá zoom, direito faz pan.
-// Criado DEPOIS do drag para o drag decidir primeiro.
+// Gestos de câmera (lib camera-controls, AD-009): 1 dedo orbita (quando o
+// toque não começou num brinquedo); 2 dedos fazem pinch-zoom + pan num gesto
+// só; 3 dedos fazem pan puro. Mouse: esquerdo orbita, direito pan, roda zoom
+// no cursor. Criado DEPOIS do drag para o drag decidir primeiro.
 const controls = createCameraControls({ camera, canvas });
-controls.enabled = false; // liberado quando o recuo da abertura termina
 
 // Abertura: câmera começa em close na Bluey e recua até a vista de jogo.
 const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
@@ -228,19 +227,32 @@ const intro = {
   toTarget: new THREE.Vector3(),
 };
 
-const blueyFocus = blueyCorner.clone().add(new THREE.Vector3(0, 1.1, 0));
+// Alvo do olhar durante a abertura — os controles só assumem no handoff.
+const introTarget = blueyCorner.clone().add(new THREE.Vector3(0, 1.1, 0));
 camera.position.copy(blueyCorner.clone().add(new THREE.Vector3(-2.3, 2.1, 3.6)));
-controls.target.copy(blueyFocus);
-camera.lookAt(blueyFocus);
+camera.lookAt(introTarget);
 
 function startCameraIntro() {
   const pose = defaultCameraPose(camera.aspect);
   intro.fromPosition.copy(camera.position);
-  intro.fromTarget.copy(controls.target);
+  intro.fromTarget.copy(introTarget);
   intro.toPosition.copy(pose.position);
   intro.toTarget.copy(pose.target);
   intro.elapsed = 0;
   intro.active = true;
+}
+
+// Pose da câmera para asserts numéricos do e2e (CAMG-06): 2 casas decimais.
+function cameraHookState() {
+  const round = (v) => Math.round(v * 100) / 100;
+  const target = intro.active ? introTarget : controls.getState().target;
+  return {
+    intro: intro.active,
+    gesturesEnabled: controls.enabled,
+    position: [round(camera.position.x), round(camera.position.y), round(camera.position.z)],
+    target: [round(target.x), round(target.y), round(target.z)],
+    distance: round(camera.position.distanceTo(target)),
+  };
 }
 
 // Hook de teste E2E — somente leitura + determinismo. Contrato do design.md.
@@ -253,7 +265,7 @@ window.__game = {
       theme: { ...themeStatus },
       bluey: { source: bluey.source, mode: bluey.mode },
       transition: transitions.state,
-      camera: { intro: intro.active, gesturesEnabled: controls.enabled },
+      camera: cameraHookState(),
     };
   },
   screenPos(objectId) {
@@ -286,12 +298,17 @@ renderer.setAnimationLoop((time) => {
     intro.elapsed += dt;
     const t = Math.min(Math.max((intro.elapsed - intro.hold) / intro.duration, 0), 1);
     camera.position.lerpVectors(intro.fromPosition, intro.toPosition, easeInOut(t));
-    controls.target.lerpVectors(intro.fromTarget, intro.toTarget, easeInOut(t));
-    camera.lookAt(controls.target);
+    introTarget.lerpVectors(intro.fromTarget, intro.toTarget, easeInOut(t));
+    camera.lookAt(introTarget);
     if (t >= 1) {
       intro.active = false;
+      // Handoff sem salto: controles assumem a pose exata do fim da abertura.
+      controls.setPose(intro.toPosition, intro.toTarget);
       controls.enabled = true;
     }
+  } else {
+    // Fora da abertura a lib é dona da câmera (damping/assentamento).
+    controls.update(dt);
   }
   feedback.update(dt);
   bluey.update(dt);
