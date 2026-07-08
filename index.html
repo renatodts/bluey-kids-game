@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Hora de Guardar!</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #7ec8e3;
+      }
+      #game-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+      #start-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(126, 200, 227, 0.95);
+        z-index: 10;
+      }
+      #start-overlay.hidden {
+        display: none;
+      }
+      #play-button {
+        width: 30vmin;
+        height: 30vmin;
+        border: none;
+        border-radius: 50%;
+        background: #f6a531;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1vmin 0 rgba(0, 0, 0, 0.2);
+      }
+      #play-button::after {
+        content: "";
+        display: block;
+        margin-left: 3vmin;
+        border-style: solid;
+        border-width: 7vmin 0 7vmin 12vmin;
+        border-color: transparent transparent transparent #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="start-overlay">
+      <button id="play-button" aria-label="Jogar"></button>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
