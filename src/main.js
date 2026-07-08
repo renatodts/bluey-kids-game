@@ -7,6 +7,7 @@ import { createBoxes } from './boxes.js';
 import { createDrag } from './drag.js';
 import { createFeedback } from './feedback.js';
 import { createBluey } from './bluey.js';
+import { createTransitions } from './transitions.js';
 
 const overlay = document.getElementById('start-overlay');
 const playButton = document.getElementById('play-button');
@@ -25,6 +26,8 @@ function webglAvailable() {
 
 if (!webglAvailable()) {
   overlay.remove();
+  // Iris opaco cobriria a mensagem de erro — sem jogo, sem transição.
+  document.getElementById('transition-overlay').remove();
   const message = document.createElement('div');
   message.id = 'webgl-error';
   message.textContent =
@@ -41,10 +44,14 @@ playButton.addEventListener('pointerup', () => {
   overlay.classList.add('hidden');
   // Gesto de usuário: única chance de destravar o WebAudio. Se falhar, jogo mudo. (GUARD-09)
   feedback.unlockAudio();
+  // Iris abre revelando o jogo — transição de abertura. (VIS-06.1)
+  transitions.open();
 });
 
 const canvas = document.getElementById('game-canvas');
 const { scene, camera, renderer, floorY, onResize } = createScene(canvas);
+
+const transitions = createTransitions(document.getElementById('transition-overlay'));
 
 window.addEventListener('resize', onResize);
 
@@ -158,8 +165,13 @@ function handleDrop(toyId, pos, screenXY) {
       // Celebração grande + próxima rodada automática em ~4s. (GUARD-05, GUARD-06)
       feedback.roundComplete(boxes);
       setTimeout(() => {
-        game.advanceRound();
-        spawnRound();
+        // Iris fecha → troca de brinquedos coberta → iris abre: brinquedos
+        // novos nunca aparecem sem transição. (VIS-06.2)
+        transitions.close().then(() => {
+          game.advanceRound();
+          spawnRound();
+          transitions.open();
+        });
       }, 4000);
     }
   } else {
@@ -181,6 +193,7 @@ createDrag({
     return true;
   },
   onDrop: handleDrop,
+  isBlocked: () => transitions.isBlocking(), // input ignorado durante o iris (VIS-07.3)
 });
 
 // Hook de teste E2E — somente leitura + determinismo. Contrato do design.md.
@@ -192,6 +205,7 @@ window.__game = {
       audio: feedback.audioState(),
       theme: { ...themeStatus },
       bluey: { source: bluey.source, mode: bluey.mode },
+      transition: transitions.state,
     };
   },
   screenPos(objectId) {

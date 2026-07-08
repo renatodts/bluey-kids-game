@@ -30,11 +30,14 @@
         z-index: 10;
       }
       /* Camada da transição iris: inicia cobrindo a tela; open() a recolhe. */
+      /* SPEC_DEVIATION: design.md previa z-index:30.
+         Reason: precisa ficar ABAIXO do start-overlay (10) e da mensagem de
+         erro WebGL (20) — senão o iris opaco esconderia o botão play. */
       #transition-overlay {
         position: fixed;
         inset: 0;
         background: #7ec8e3;
-        z-index: 30;
+        z-index: 5;
         pointer-events: none;
         clip-path: circle(150% at 50% 50%);
       }

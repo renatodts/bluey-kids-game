@@ -5,7 +5,7 @@ import { FLOOR_BOUNDS } from './game.js';
 
 const DRAG_LIFT = 0.8; // elevação do brinquedo enquanto arrastado
 
-export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick }) {
+export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick, isBlocked = () => false }) {
   const raycaster = new THREE.Raycaster();
   const pointerNdc = new THREE.Vector2();
   const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -floorY);
@@ -42,6 +42,8 @@ export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick }) {
   }
 
   function onPointerDown(event) {
+    // Tela em transição (iris): nenhum arrasto novo começa. (VIS-07.3)
+    if (isBlocked()) return;
     // Só o primeiro ponteiro arrasta; um segundo dedo é ignorado. (GUARD-01)
     if (activePointerId !== null) return;
     toNdc(event);
