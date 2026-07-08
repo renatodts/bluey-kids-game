@@ -14,6 +14,18 @@ export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick, isBlo
   let activePointerId = null;
   let draggedToy = null;
 
+  // Toques ativos no canvas: com 2+ dedos o gesto é da câmera (pan/zoom),
+  // nunca início de arrasto — mesmo que o segundo dedo caia sobre um brinquedo.
+  const touchPoints = new Set();
+
+  function trackTouchStart(event) {
+    if (event.pointerType === 'touch') touchPoints.add(event.pointerId);
+  }
+
+  function trackTouchEnd(event) {
+    touchPoints.delete(event.pointerId);
+  }
+
   function toNdc(event) {
     const rect = canvas.getBoundingClientRect();
     pointerNdc.set(
@@ -42,10 +54,13 @@ export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick, isBlo
   }
 
   function onPointerDown(event) {
+    trackTouchStart(event);
     // Tela em transição (iris): nenhum arrasto novo começa. (VIS-07.3)
     if (isBlocked()) return;
     // Só o primeiro ponteiro arrasta; um segundo dedo é ignorado. (GUARD-01)
     if (activePointerId !== null) return;
+    // Segundo dedo sem arrasto ativo = gesto de câmera em andamento.
+    if (event.pointerType === 'touch' && touchPoints.size > 1) return;
     toNdc(event);
     raycaster.setFromCamera(pointerNdc, camera);
     const hits = raycaster.intersectObjects(toys, true);
@@ -99,4 +114,8 @@ export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick, isBlo
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
   canvas.addEventListener('pointerleave', onPointerLeave);
+  // Limpeza na janela: dedo pode subir fora do canvas — sem isso o contador
+  // de toques vazaria e bloquearia arrastos futuros com 1 dedo.
+  window.addEventListener('pointerup', trackTouchEnd);
+  window.addEventListener('pointercancel', trackTouchEnd);
 }

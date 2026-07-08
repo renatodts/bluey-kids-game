@@ -17,7 +17,8 @@ low-poly (AD-008) — o jogo nunca fica sem a personagem.
 ## Parte A — Tema presente (viewport 1280×800)
 
 1. Navegar com `localStorage` limpo; tocar play; aguardar a transição de
-   abertura terminar (`transition === 'none'`) e ~1s para a carga das texturas.
+   abertura terminar (`transition === 'none'`), o recuo da câmera
+   (`camera.intro === false`, ~3s) e ~1s para a carga das texturas.
    **Assert (GUARD-08.3)**: `theme.framesLoaded === 3` (quadros na parede) e
    `theme.plaquesLoaded === 3` (placas Bluey/Bingo/Chilli).
    **Assert (VIS-04)**: `bluey.source === 'gltf'` se `assets/bluey/bluey.glb`

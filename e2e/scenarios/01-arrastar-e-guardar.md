@@ -22,8 +22,11 @@ para escolher caixa certa/errada, nunca a suposição inicial.
 
 1. `browser_resize` 1280×800; navegar para o dev server com `localStorage` limpo
    (limpar a chave `hora-de-guardar:round` e recarregar).
-2. Tocar o botão play (overlay some).
-   **Assert**: overlay `#start-overlay` tem classe `hidden`.
+2. Tocar o botão play (overlay some). Aguardar `state().camera.intro === false`
+   — a abertura recua a câmera do close na Bluey até a vista de jogo (~3s) e
+   o input fica bloqueado durante o recuo.
+   **Assert**: overlay `#start-overlay` tem classe `hidden`;
+   `state().camera.gesturesEnabled === true` ao fim do recuo.
 3. `window.__game.seed(101)` — rodada determinística.
    **Assert**: `state().round === 1`, `state().toys.length === 6`,
    todos `state === 'idle'`, 2 brinquedos por tipo, `phase === 'playing'`.
@@ -50,7 +53,7 @@ para escolher caixa certa/errada, nunca a suposição inicial.
 ## Parte B — Mobile touch (viewport 390×844, pointerType `touch`)
 
 10. `browser_resize` 390×844; recarregar com `localStorage` limpo; tocar play;
-    `seed(202)`.
+    aguardar `camera.intro === false`; `seed(202)`.
     **Assert**: `round === 1`, 6 brinquedos idle, `phase === 'playing'`.
 11. **GUARD-02 (touch)**: arrastar uma bola até a cesta com `pointerType: 'touch'`.
     **Assert**: bola === `'stored'`.

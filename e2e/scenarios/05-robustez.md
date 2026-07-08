@@ -7,7 +7,8 @@ Executado por agente via Playwright MCP. Convenções dos cenários anteriores
 
 ## Parte A — Desktop 1280×800 (pointerType `mouse`)
 
-1. Navegar com `localStorage` limpo; tocar play; `seed(808)`.
+1. Navegar com `localStorage` limpo; tocar play; aguardar
+   `camera.intro === false` (recuo da abertura, ~3s); `seed(808)`.
    **Assert**: `round === 1`, 6 brinquedos `'idle'`, `phase === 'playing'`.
 2. **GUARD-07.2 (resize durante arrasto)**: `pointerdown` num brinquedo idle,
    ~3 `pointermove` na direção da caixa certa; `browser_resize` 900×900 com o
@@ -24,7 +25,8 @@ Executado por agente via Playwright MCP. Convenções dos cenários anteriores
 
 ## Parte B — Retrato 390×844 (pointerType `touch`)
 
-5. `browser_resize` 390×844; recarregar limpo; play; `seed(909)`.
+5. `browser_resize` 390×844; recarregar limpo; play; aguardar
+   `camera.intro === false`; `seed(909)`.
    **Assert**: cena funcional (6 brinquedos idle).
 6. **GUARD-07 (retrato funcional)**: arrastar um brinquedo até a caixa certa
    (touch) e soltar sobre a caixa.

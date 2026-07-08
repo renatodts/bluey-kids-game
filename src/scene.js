@@ -1,4 +1,5 @@
-// Palco: renderer, câmera fixa em perspectiva, luzes, sala e quadros. (GUARD-07, AD-002)
+// Palco: renderer, câmera em perspectiva (gestos de órbita/pan/zoom no main),
+// luzes, sala e quadros. (GUARD-07, AD-002)
 import * as THREE from 'three';
 import { toonMaterial } from './materials.js';
 import { createRoom } from './room.js';
@@ -64,6 +65,17 @@ function createWallFrames() {
   return group;
 }
 
+// Vista de jogo: mantém a sala inteira visível afastando a câmera quando a
+// tela é estreita (retrato funcional). Destino da abertura e pose inicial.
+export function defaultCameraPose(aspect) {
+  const baseDistance = 12.5;
+  const widen = aspect >= 1.15 ? 1 : 1.15 / Math.max(aspect, 0.35);
+  return {
+    position: new THREE.Vector3(0, 7.5, baseDistance * widen),
+    target: new THREE.Vector3(0, 0.8, 0),
+  };
+}
+
 export function createScene(canvas) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#bfe6f2');
@@ -108,20 +120,19 @@ export function createScene(canvas) {
   scene.add(createRoom());
   scene.add(createWallFrames());
 
-  // Câmera fixa: sem órbita/zoom. Resize mantém a sala inteira visível
-  // afastando a câmera quando a tela é estreita (retrato funcional).
+  // Resize só atualiza viewport/aspect — a posição da câmera pertence aos
+  // controles de gesto (órbita/pan/zoom) depois da abertura.
   function onResize() {
     const width = canvas.clientWidth || window.innerWidth;
     const height = canvas.clientHeight || window.innerHeight;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    const baseDistance = 12.5;
-    const widen = camera.aspect >= 1.15 ? 1 : 1.15 / Math.max(camera.aspect, 0.35);
-    camera.position.set(0, 7.5, baseDistance * widen);
-    camera.lookAt(0, 0.8, 0);
     camera.updateProjectionMatrix();
   }
   onResize();
+  const pose = defaultCameraPose(camera.aspect);
+  camera.position.copy(pose.position);
+  camera.lookAt(pose.target);
 
   return { scene, camera, renderer, floorY: ROOM.floorY, onResize };
 }

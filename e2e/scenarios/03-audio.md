@@ -16,8 +16,9 @@ Os sons são sintetizados com WebAudio (osciladores) — não há arquivos de so
 2. **GUARD-09.1 (unlock no gesto)**: clicar o botão play com clique REAL
    (`browser_click` — gesto confiável para a política de autoplay).
    **Assert**: overlay com classe `hidden`; `state().audio.unlocked === true`.
-3. **GUARD-09.2 (som de acerto)**: `seed(404)`; arrastar um brinquedo até a
-   caixa certa (regra do 'dragging' dos cenários anteriores) e soltar.
+3. **GUARD-09.2 (som de acerto)**: aguardar `camera.intro === false` (recuo da
+   abertura, ~3s); `seed(404)`; arrastar um brinquedo até a caixa certa (regra
+   do 'dragging' dos cenários anteriores) e soltar.
    **Assert**: brinquedo `'stored'`; `state().audio.soundsPlayed >= 1`.
 4. Screenshot de evidência: `e2e-03-audio.jpeg`.
 

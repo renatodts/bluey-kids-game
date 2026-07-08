@@ -1,8 +1,9 @@
 // Composição: cena + jogo + arrasto + feedback + hook de teste. (T8/T9)
 import * as THREE from 'three';
-import { createScene, themeStatus } from './scene.js';
+import { createScene, themeStatus, defaultCameraPose } from './scene.js';
+import { createCameraControls } from './camera-controls.js';
 import { createGame } from './game.js';
-import { createToyMesh } from './toys.js';
+import { createToyMesh, updateToyGlow } from './toys.js';
 import { createBoxes } from './boxes.js';
 import { createDrag } from './drag.js';
 import { createFeedback } from './feedback.js';
@@ -46,6 +47,8 @@ playButton.addEventListener('pointerup', () => {
   feedback.unlockAudio();
   // Iris abre revelando o jogo — transição de abertura. (VIS-06.1)
   transitions.open();
+  // Close na Bluey → recuo suave até a vista de jogo.
+  startCameraIntro();
 });
 
 const canvas = document.getElementById('game-canvas');
@@ -69,9 +72,11 @@ const game = createGame(storage);
 const boxes = createBoxes();
 for (const box of boxes) scene.add(box.mesh);
 
+const blueyCorner = new THREE.Vector3(5.8, floorY, -2.1);
+
 const bluey = createBluey({
   scene,
-  cornerPosition: new THREE.Vector3(5.8, floorY, -2.1),
+  cornerPosition: blueyCorner,
   centerPosition: new THREE.Vector3(0, floorY, 0.25),
 });
 
@@ -147,6 +152,8 @@ function nearestBox(pos, screenXY) {
 }
 
 function handleDrop(toyId, pos, screenXY) {
+  // Fim do arrasto devolve a câmera aos gestos (se a abertura já terminou).
+  controls.enabled = !intro.active;
   const mesh = findToyMesh(toyId);
   if (!mesh) return;
   const box = nearestBox(pos, screenXY);
@@ -188,13 +195,53 @@ createDrag({
   floorY,
   onPick: (toyId) => {
     if (!game.pickToy(toyId)) return false;
+    // Dedo no brinquedo = arrasto; a câmera não gira junto. (registrado antes
+    // dos listeners do OrbitControls, então desabilitar aqui vale já para
+    // este mesmo pointerdown)
+    controls.enabled = false;
     // Pegou em pleno quique/assentamento? Cancela o tween — animação nunca trava o arrasto.
     feedback.cancel(findToyMesh(toyId));
     return true;
   },
   onDrop: handleDrop,
-  isBlocked: () => transitions.isBlocking(), // input ignorado durante o iris (VIS-07.3)
+  // Input ignorado durante o iris (VIS-07.3) e durante o recuo da câmera.
+  isBlocked: () => transitions.isBlocking() || intro.active,
 });
+
+// Gestos de câmera: 1 dedo gira (quando o toque não começou num brinquedo);
+// 2 dedos fazem pan + pinch-zoom + giro (twist) num gesto só, estilo app de
+// mapa. Mouse: esquerdo gira, roda dá zoom, direito faz pan.
+// Criado DEPOIS do drag para o drag decidir primeiro.
+const controls = createCameraControls({ camera, canvas });
+controls.enabled = false; // liberado quando o recuo da abertura termina
+
+// Abertura: câmera começa em close na Bluey e recua até a vista de jogo.
+const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
+const intro = {
+  active: false,
+  elapsed: 0,
+  hold: 0.8, // segura o close na Bluey enquanto o iris abre
+  duration: 2.0,
+  fromPosition: new THREE.Vector3(),
+  fromTarget: new THREE.Vector3(),
+  toPosition: new THREE.Vector3(),
+  toTarget: new THREE.Vector3(),
+};
+
+const blueyFocus = blueyCorner.clone().add(new THREE.Vector3(0, 1.1, 0));
+camera.position.copy(blueyCorner.clone().add(new THREE.Vector3(-2.3, 2.1, 3.6)));
+controls.target.copy(blueyFocus);
+camera.lookAt(blueyFocus);
+
+function startCameraIntro() {
+  const pose = defaultCameraPose(camera.aspect);
+  intro.fromPosition.copy(camera.position);
+  intro.fromTarget.copy(controls.target);
+  intro.toPosition.copy(pose.position);
+  intro.toTarget.copy(pose.target);
+  intro.elapsed = 0;
+  intro.active = true;
+}
 
 // Hook de teste E2E — somente leitura + determinismo. Contrato do design.md.
 window.__game = {
@@ -206,6 +253,7 @@ window.__game = {
       theme: { ...themeStatus },
       bluey: { source: bluey.source, mode: bluey.mode },
       transition: transitions.state,
+      camera: { intro: intro.active, gesturesEnabled: controls.enabled },
     };
   },
   screenPos(objectId) {
@@ -227,9 +275,24 @@ spawnRound();
 renderer.render(scene, camera);
 
 let lastTime = 0;
+let elapsed = 0;
 renderer.setAnimationLoop((time) => {
   const dt = Math.min((time - lastTime) / 1000, 0.05); // clamp: aba dormiu ≠ salto de animação
   lastTime = time;
+  elapsed += dt;
+  for (const mesh of toyMeshes) updateToyGlow(mesh, elapsed);
+  if (intro.active) {
+    // Recuo da abertura: câmera sai do close na Bluey para a vista de jogo.
+    intro.elapsed += dt;
+    const t = Math.min(Math.max((intro.elapsed - intro.hold) / intro.duration, 0), 1);
+    camera.position.lerpVectors(intro.fromPosition, intro.toPosition, easeInOut(t));
+    controls.target.lerpVectors(intro.fromTarget, intro.toTarget, easeInOut(t));
+    camera.lookAt(controls.target);
+    if (t >= 1) {
+      intro.active = false;
+      controls.enabled = true;
+    }
+  }
   feedback.update(dt);
   bluey.update(dt);
   renderer.render(scene, camera);

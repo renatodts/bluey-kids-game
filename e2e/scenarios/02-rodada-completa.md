@@ -22,7 +22,8 @@ sequência de arrastos.
    `hora-de-guardar:round` e recarregar); tocar play.
    **Assert (VIS-06.1)**: logo após o play, `transition === 'opening'` (iris de
    abertura em andamento); em até ~1.5s, `transition === 'none'`.
-   Então `window.__game.seed(303)`.
+   Aguardar também `camera.intro === false` (recuo do close na Bluey, ~3s;
+   input bloqueado enquanto durar). Então `window.__game.seed(303)`.
    **Assert**: `round === 1`, `toys.length === 6`, todos `'idle'`, `phase === 'playing'`.
 2. **GUARD-02/04 (guardar todos)**: repetir até não sobrar brinquedo `'idle'`:
    `pointerdown` no `screenPos` de um brinquedo idle → identificar o `'dragging'`
