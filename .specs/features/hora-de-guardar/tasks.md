@@ -170,7 +170,7 @@ T13 → T14
 **Depends on**: T8 | **Reuses**: T8 | **Requirement**: GUARD-02, GUARD-03
 **Tools**: MCP: NONE | Skill: NONE
 **Done when**:
-- [ ] Animações visíveis e sem travar o arrasto seguinte; build passa; cenário 01 continua verde (re-executar)
+- [x] Animações visíveis e sem travar o arrasto seguinte; build passa; cenário 01 continua verde (re-executar)
 **Tests**: none (coberto pelo re-run do cenário 01) | **Gate**: full
 **Commit**: `feat(feedback): store/reject tweens`
 
@@ -181,7 +181,7 @@ T13 → T14
 **Depends on**: T9 | **Reuses**: T3, T9 | **Requirement**: GUARD-04, GUARD-05, GUARD-06
 **Tools**: MCP: `playwright` | Skill: NONE
 **Done when**:
-- [ ] Cenário 02 verde (incluindo reload/persistência); `npm run build && npm test` passa
+- [x] Cenário 02 verde (incluindo reload/persistência); `npm run build && npm test` passa
 **Tests**: e2e | **Gate**: full
 **Commit**: `feat(feedback): round celebration, auto-advance + e2e scenario 02`
 
@@ -192,7 +192,7 @@ T13 → T14
 **Depends on**: T10 | **Reuses**: T10 | **Requirement**: GUARD-09
 **Tools**: MCP: `playwright`; WebSearch/WebFetch (baixar sons livres) | Skill: NONE
 **Done when**:
-- [ ] Cenário 03 verde; sons tocam após play; sem erro quando áudio bloqueado
+- [x] Cenário 03 verde; sons tocam após play; sem erro quando áudio bloqueado
 **Tests**: e2e | **Gate**: full
 **Commit**: `feat(audio): unlockable webaudio + start screen + e2e scenario 03`
 
@@ -203,7 +203,7 @@ T13 → T14
 **Depends on**: T10 | **Reuses**: fallbacks de T4/T6 | **Requirement**: GUARD-08
 **Tools**: MCP: `playwright`; WebFetch (media hub) | Skill: NONE
 **Done when**:
-- [ ] Cenário 04 verde nos dois modos (com assets e com fallback); AD-005 respeitado (assets fora de qualquer publicação)
+- [x] Cenário 04 verde nos dois modos (com assets e com fallback); AD-005 respeitado (assets fora de qualquer publicação)
 **Tests**: e2e | **Gate**: full
 **Commit**: `feat(theme): official bluey art with solid-color fallback + e2e scenario 04`
 
@@ -214,7 +214,7 @@ T13 → T14
 **Depends on**: T8 | **Reuses**: T4/T7 | **Requirement**: GUARD-07 + edge cases da spec
 **Tools**: MCP: `playwright` | Skill: NONE
 **Done when**:
-- [ ] Cenário 05 verde em viewport desktop e mobile; `npm run build && npm test` passa
+- [x] Cenário 05 verde em viewport desktop e mobile; `npm run build && npm test` passa
 **Tests**: e2e | **Gate**: full
 **Commit**: `fix(viewport): resilient resize, cancel and portrait handling + e2e scenario 05`
 
@@ -225,7 +225,7 @@ T13 → T14
 **Depends on**: T11, T12, T13 | **Reuses**: todos | **Requirement**: todos (GUARD-01..09)
 **Tools**: MCP: `playwright` | Skill: NONE
 **Done when**:
-- [ ] 5 cenários verdes contra `vite preview`; `npm run build && npm test` passa
+- [x] 5 cenários verdes contra `vite preview`; `npm run build && npm test` passa
 **Tests**: e2e | **Gate**: full
 **Commit**: `test(e2e): full prompt-guided pass on production build`
 

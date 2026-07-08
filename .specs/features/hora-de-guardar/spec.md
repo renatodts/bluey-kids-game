@@ -149,15 +149,15 @@ O jogo: guardar brinquedos 3D nas caixas certas, por tipo, na sala da família H
 
 | Requirement ID | Story | Phase | Status |
 |---|---|---|---|
-| GUARD-01 | P1: Arrastar e guardar | Tasks | Pending |
-| GUARD-02 | P1: Arrastar e guardar | Tasks | Pending |
-| GUARD-03 | P1: Arrastar e guardar | Tasks | Pending |
-| GUARD-04 | P1: Rodadas e progressão | Tasks | Pending |
-| GUARD-05 | P1: Rodadas e progressão | Tasks | Pending |
-| GUARD-06 | P1: Rodadas e progressão | Tasks | Pending |
-| GUARD-07 | P1: Diorama touch-first | Tasks | Pending |
-| GUARD-08 | P2: Feedback e tema Bluey | Tasks | Pending |
-| GUARD-09 | P2: Som | Tasks | Pending |
+| GUARD-01 | P1: Arrastar e guardar | Execute | Implemented |
+| GUARD-02 | P1: Arrastar e guardar | Execute | Implemented |
+| GUARD-03 | P1: Arrastar e guardar | Execute | Implemented |
+| GUARD-04 | P1: Rodadas e progressão | Execute | Implemented |
+| GUARD-05 | P1: Rodadas e progressão | Execute | Implemented |
+| GUARD-06 | P1: Rodadas e progressão | Execute | Implemented |
+| GUARD-07 | P1: Diorama touch-first | Execute | Implemented |
+| GUARD-08 | P2: Feedback e tema Bluey | Execute | Implemented |
+| GUARD-09 | P2: Som | Execute | Implemented |
 
 **Coverage:** 9 total, 9 mapeados em tasks, 0 sem mapeamento.
 
