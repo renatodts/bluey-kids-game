@@ -100,9 +100,9 @@ T11
 - Skill: `threejs-geometry`, `threejs-materials`
 
 **Done when**:
-- [ ] `createRoom()` retorna `THREE.Group` com no mínimo sofá, tapete, janela+quintal
-- [ ] `ROOM_CLEARANCE` exportado não colide com `FLOOR_BOUNDS` de `game.js` (checagem manual visual)
-- [ ] `npm run build` passa
+- [x] `createRoom()` retorna `THREE.Group` com no mínimo sofá, tapete, janela+quintal
+- [x] `ROOM_CLEARANCE` exportado não colide com `FLOOR_BOUNDS` de `game.js` (checagem manual visual)
+- [x] `npm run build` passa
 
 **Tests**: none
 **Gate**: build
