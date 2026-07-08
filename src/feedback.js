@@ -154,7 +154,16 @@ function createAudio() {
     note(1046.5, 0.6, 0.8, 'triangle', 0.22);
   });
 
-  return { unlock, chime, fanfare, state: () => ({ unlocked, soundsPlayed }) };
+  // Jingle de vitória (~2s): duas voltas do arpejo subindo uma oitava e
+  // acorde final sustentado — inconfundível frente à fanfarra de rodada. (WIN-06)
+  const victoryTune = () => safePlay(() => {
+    const run = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568, 2093];
+    run.forEach((f, i) => note(f, i * 0.12, 0.25, 'triangle', 0.18));
+    [1046.5, 1318.5, 1568].forEach((f) => note(f, 0.95, 1.1, 'triangle', 0.16));
+    note(2093, 1.3, 0.9, 'sine', 0.2);
+  });
+
+  return { unlock, chime, fanfare, victoryTune, state: () => ({ unlocked, soundsPlayed }) };
 }
 
 export function createFeedback({ scene, floorY, bluey }) {
@@ -252,6 +261,15 @@ export function createFeedback({ scene, floorY, bluey }) {
     audio.fanfare();
   }
 
+  // Festa de VITÓRIA — maior e mais longa que a de rodada: 8s de chuva de
+  // confete, dança central estendida da Bluey e jingle próprio. (WIN-06)
+  function victory(boxes) {
+    confetti.rain(8);
+    if (bluey) bluey.danceAt(new THREE.Vector3(0, floorY, 0.25), 8);
+    for (const box of boxes) pulse(box.mesh);
+    audio.victoryTune();
+  }
+
   // Quicar de volta ao spawn em pulinhos decrescentes. (GUARD-03)
   function rejected(toyMesh, box, spawn) {
     cancel(toyMesh);
@@ -299,6 +317,7 @@ export function createFeedback({ scene, floorY, bluey }) {
     rejected,
     settle,
     roundComplete,
+    victory,
     unlockAudio: audio.unlock,
     audioState: audio.state,
   };
