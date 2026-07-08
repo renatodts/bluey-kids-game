@@ -12,6 +12,8 @@ const playButton = document.getElementById('play-button');
 
 playButton.addEventListener('pointerup', () => {
   overlay.classList.add('hidden');
+  // Gesto de usuário: única chance de destravar o WebAudio. Se falhar, jogo mudo. (GUARD-09)
+  feedback.unlockAudio();
 });
 
 const canvas = document.getElementById('game-canvas');
@@ -151,7 +153,8 @@ createDrag({
 // Hook de teste E2E — somente leitura + determinismo. Contrato do design.md.
 window.__game = {
   state() {
-    return game.getState();
+    // RoundState + flag de áudio (cenário 03 asserta unlock/silêncio por aqui).
+    return { ...game.getState(), audio: feedback.audioState() };
   },
   screenPos(objectId) {
     const boxTarget = boxes.find((b) => b.type === objectId);

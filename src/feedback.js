@@ -1,6 +1,9 @@
-// Resposta sensorial: tweens de acerto/erro (GUARD-02/03), confete e celebração (GUARD-05/08).
-// Mini-tween próprio (lerp + easing) — sem dependências (design.md, Tech Decisions).
-// Som (T11) e aparição da Bluey (T12) entram nas próximas tasks.
+// Resposta sensorial: tweens de acerto/erro (GUARD-02/03), confete e celebração (GUARD-05/08),
+// som festivo via WebAudio (GUARD-09). Mini-tween próprio (lerp + easing) — sem dependências
+// (design.md, Tech Decisions). Aparição da Bluey (T12) entra na próxima task.
+// SPEC_DEVIATION: sons sintetizados com osciladores WebAudio em vez de arquivos de kenney.nl.
+// Reason: zero dependência de rede/asset em runtime e sem risco de licença; design.md já
+// previa WebAudio direto e a spec só pede "sons livres genéricos".
 import * as THREE from 'three';
 
 const easeOutCubic = (t) => 1 - (1 - t) ** 3;
@@ -96,9 +99,68 @@ function createConfetti(scene) {
   return { burst, rain, update };
 }
 
+// Som: destravado no gesto do play; se o navegador bloquear, o jogo segue mudo. (GUARD-09)
+function createAudio() {
+  let ctx = null;
+  let unlocked = false;
+  let soundsPlayed = 0;
+
+  async function unlock() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      if (!ctx) ctx = new AC();
+      await ctx.resume();
+      unlocked = ctx.state === 'running';
+    } catch {
+      unlocked = false; // segue funcional em silêncio (GUARD-09.3)
+    }
+    return unlocked;
+  }
+
+  function note(freq, start, dur, type = 'sine', peak = 0.2) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const t0 = ctx.currentTime + start;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(peak, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
+  }
+
+  function safePlay(fn) {
+    if (!unlocked || !ctx || ctx.state !== 'running') return;
+    try {
+      fn();
+      soundsPlayed += 1;
+    } catch {
+      // qualquer falha de áudio é silenciosa — nunca quebra o jogo
+    }
+  }
+
+  // Som curto de acerto: duas notas subindo ("plim!"). (GUARD-09.2)
+  const chime = () => safePlay(() => {
+    note(880, 0, 0.12);
+    note(1174.66, 0.09, 0.25);
+  });
+
+  // Fanfarra da celebração: arpejo C-E-G-C. (GUARD-09.2)
+  const fanfare = () => safePlay(() => {
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => note(f, i * 0.15, 0.3, 'triangle', 0.18));
+    note(1046.5, 0.6, 0.8, 'triangle', 0.22);
+  });
+
+  return { unlock, chime, fanfare, state: () => ({ unlocked, soundsPlayed }) };
+}
+
 export function createFeedback({ scene, floorY }) {
   const tweens = [];
   const confetti = createConfetti(scene);
+  const audio = createAudio();
 
   function addTween(target, duration, onUpdate, onComplete) {
     tweens.push({ target, duration, elapsed: 0, onUpdate, onComplete });
@@ -177,12 +239,15 @@ export function createFeedback({ scene, floorY }) {
     );
     pulse(box.mesh);
     confetti.burst(box.position.x, floorY + 1.2, box.position.z); // (GUARD-08.1)
+    audio.chime(); // (GUARD-09.2)
   }
 
-  // Celebração grande ao completar a rodada: chuva de confete + caixas pulando. (GUARD-05, GUARD-08.2)
+  // Celebração grande ao completar a rodada: chuva de confete + caixas pulando + fanfarra.
+  // (GUARD-05, GUARD-08.2, GUARD-09.2)
   function roundComplete(boxes) {
     confetti.rain(3);
     for (const box of boxes) pulse(box.mesh);
+    audio.fanfare();
   }
 
   // Quicar de volta ao spawn em pulinhos decrescentes. (GUARD-03)
@@ -225,5 +290,14 @@ export function createFeedback({ scene, floorY }) {
     );
   }
 
-  return { update, cancel, stored, rejected, settle, roundComplete };
+  return {
+    update,
+    cancel,
+    stored,
+    rejected,
+    settle,
+    roundComplete,
+    unlockAudio: audio.unlock,
+    audioState: audio.state,
+  };
 }
