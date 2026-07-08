@@ -8,6 +8,15 @@ const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 const DEFAULT_CORNER = new THREE.Vector3(5.8, 0, -2.1);
 const DEFAULT_CENTER = new THREE.Vector3(0, 0, 0.25);
 const CHEER_DURATION = 1.6;
+const IDLE_YAW = -0.55;
+const TURN_SPEED = 6; // rad/s de amortecimento — vira suave, nunca "gira feito bússola"
+
+// Menor caminho angular entre dois ângulos (evita a volta longa perto de ±π).
+function angleLerp(current, target, t) {
+  const twoPi = Math.PI * 2;
+  let delta = ((target - current + Math.PI) % twoPi + twoPi) % twoPi - Math.PI;
+  return current + delta * t;
+}
 
 function markShadows(root) {
   root.traverse((node) => {
@@ -128,7 +137,9 @@ function fitModelToBlueyScale(object) {
   const center = box.getCenter(new THREE.Vector3());
   const minY = box.min.y;
   object.position.sub(new THREE.Vector3(center.x, minY, center.z));
-  object.rotation.y = Math.PI;
+  // Modelo nativo olha para +Z; o giro de -0.55 do root (pose idle) o aponta
+  // do canto para dentro da sala — meia-volta aqui o deixaria de costas.
+  object.rotation.y = 0;
   return object;
 }
 
@@ -194,7 +205,7 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
     );
   }
 
-  function pose(dt) {
+  function pose(dt, lookTarget) {
     const leftArm = model.userData.leftArm;
     const rightArm = model.userData.rightArm;
     modeTime += dt;
@@ -228,7 +239,15 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
 
     const bob = Math.sin(modeTime * 2.6) * 0.035;
     root.position.y = bob;
-    root.rotation.y = -0.55;
+    // Brinquedo em arrasto: vira suavemente para acompanhá-lo; sem arrasto,
+    // volta ao ângulo padrão do canto. (VIS: Bluey acompanha o arrasto)
+    let targetYaw = IDLE_YAW;
+    if (lookTarget) {
+      const dx = lookTarget.x - root.position.x;
+      const dz = lookTarget.z - root.position.z;
+      if (dx * dx + dz * dz > 1e-4) targetYaw = Math.atan2(dx, dz);
+    }
+    root.rotation.y = angleLerp(root.rotation.y, targetYaw, 1 - Math.exp(-TURN_SPEED * dt));
     setModelScale(1, 1 + bob * 0.7, 1);
     if (leftArm) leftArm.rotation.z = 0.5 + Math.sin(modeTime * 2.2) * 0.06;
     if (rightArm) rightArm.rotation.z = -0.5 - Math.sin(modeTime * 2.2) * 0.06;
@@ -260,7 +279,7 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
     moveTo(corner, 0.65);
   }
 
-  function update(dt) {
+  function update(dt, lookTarget) {
     for (let i = tweens.length - 1; i >= 0; i--) {
       const tween = tweens[i];
       tween.elapsed += dt;
@@ -271,7 +290,7 @@ export function createBluey({ scene, cornerPosition = DEFAULT_CORNER, centerPosi
         if (tween.onComplete) tween.onComplete();
       }
     }
-    pose(dt);
+    pose(dt, lookTarget);
   }
 
   return {

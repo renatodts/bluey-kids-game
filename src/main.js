@@ -122,6 +122,10 @@ const feedback = createFeedback({ scene, floorY, bluey });
 // Referência viva compartilhada com o drag — mutar no lugar, nunca reatribuir.
 const toyMeshes = [];
 
+// Brinquedo em arrasto no momento (ou null): a Bluey vira a cabeça/corpo para
+// acompanhá-lo enquanto ele se move — some assim que solta (VIS: acompanhar arrasto).
+let draggedMesh = null;
+
 function spawnRound() {
   for (const mesh of toyMeshes) scene.remove(mesh);
   toyMeshes.length = 0;
@@ -192,6 +196,7 @@ function nearestBox(pos, screenXY) {
 function handleDrop(toyId, pos, screenXY) {
   // Fim do arrasto devolve a câmera aos gestos (se a abertura já terminou).
   controls.enabled = !intro.active;
+  draggedMesh = null; // solto (deliberado ou não): a Bluey para de seguir
   const mesh = findToyMesh(toyId);
   if (!mesh) return;
   const box = nearestBox(pos, screenXY);
@@ -247,6 +252,7 @@ createDrag({
     controls.enabled = false;
     // Pegou em pleno quique/assentamento? Cancela o tween — animação nunca trava o arrasto.
     feedback.cancel(findToyMesh(toyId));
+    draggedMesh = findToyMesh(toyId);
     return true;
   },
   onDrop: handleDrop,
@@ -359,6 +365,6 @@ renderer.setAnimationLoop((time) => {
     controls.update(dt);
   }
   feedback.update(dt);
-  bluey.update(dt);
+  bluey.update(dt, draggedMesh ? draggedMesh.position : null);
   renderer.render(scene, camera);
 });

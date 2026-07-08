@@ -5,13 +5,13 @@ import { toonMaterial } from './materials.js';
 // Brilho pulsante: destaca o brinquedo da sala mesmo sem luz direta em cima.
 // Emissivo sozinho satura em branco nas cores já bem vivas dos brinquedos, então
 // o brilho de verdade vem de um halo aditivo no chão (imune à cor do material).
-const GLOW_MIN = 0.1;
-const GLOW_AMPLITUDE = 0.25;
+const GLOW_MIN = 0.03;
+const GLOW_AMPLITUDE = 0.08;
 const GLOW_SPEED = 2.1; // rad/s — ciclo completo a cada ~3s
 
 const HALO_SCALE = 1.9; // raio do halo relativo ao raio do brinquedo
-const HALO_OPACITY_MIN = 0.25;
-const HALO_OPACITY_AMPLITUDE = 0.4;
+const HALO_OPACITY_MIN = 0.1;
+const HALO_OPACITY_AMPLITUDE = 0.15;
 const HALO_SCALE_MIN = 0.9;
 const HALO_SCALE_AMPLITUDE = 0.25;
 
