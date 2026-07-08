@@ -35,3 +35,18 @@ Posso, no próximo passo, montar uma lista mais prática em formato de produçã
 1. links organizados por tipo de asset,  
 2. quais arquivos baixar primeiro,  
 3. e uma estratégia para transformar isso em sprites/UI para um jogo web.
+
+## Modelo 3D fan-made da Bluey (feature `visual-bluey`)
+
+Pesquisa (2026-07-08) não encontrou nenhum modelo 3D fan-made baixável sem login manual — todos os candidatos viáveis estão no Sketchfab e exigem conta gratuita para exportar o glTF.
+
+**Escolhido para download manual pelo usuário:**
+
+- **Bluey Heeler's Family** — autor `MickeyFan1928`, Sketchfab: https://sketchfab.com/3d-models/bluey-heelers-family-bluey-3d-model-chucky-db72671fe85043e69fd0cb271ae3850e
+- Licença: **CC-BY** (exige atribuição ao autor no jogo/créditos)
+- Pack inclui Bluey, Bingo, Bandit e Chilli; ~36k tris por personagem; sem rig/animações embutidas (animação é procedural, ver `bluey.js`)
+- Passo manual: criar conta gratuita no Sketchfab → baixar em formato glTF → salvar em `assets/bluey/bluey.glb` (Bluey) e, opcionalmente, `assets/bluey/bingo.glb` (P3)
+
+**Alternativa com rig** (não escolhida por licença não declarada): pack `coolbeanslollol` no DeviantArt (.blend/FBX, rigged) — mantido aqui só como referência caso o pack acima não sirva.
+
+**Uso**: privado, uso familiar, conforme AD-005/AD-008. Sem esse arquivo, o jogo usa a Bluey procedural (fallback automático, sem quebrar).
