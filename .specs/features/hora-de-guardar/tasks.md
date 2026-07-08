@@ -12,7 +12,7 @@ review, Verifier, discrimination sensor).
 ---
 
 **Design**: `.specs/features/hora-de-guardar/design.md`
-**Status**: In Progress (aprovado em 2026-07-08; execução via 2 batch workers: P1–P3 = T1–T8, P4–P5 = T9–T14)
+**Status**: Done (2026-07-08 — 14/14 tasks, Verifier PASS: `.specs/features/hora-de-guardar/validation.md`)
 
 ---
 

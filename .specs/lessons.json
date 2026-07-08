@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 4,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "spec_precision_gap::acs de posicionamento espacial espalhar perto dentro da rea devem definir bounds num ricos na spec para o teste assertar valor exato n o constante da implementa o",
+      "text": "ACs de posicionamento espacial ('espalhar', 'perto', 'dentro da área') devem definir bounds numéricos na spec para o teste assertar valor exato, não constante da implementação",
+      "signal": "spec_precision_gap",
+      "scope": "spec-writing",
+      "status": "candidate",
+      "features": [
+        "hora-de-guardar"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "GUARD-04 / src/game.test.js:34 (spec-writing)"
+      ],
+      "created": "2026-07-08T14:55:55Z",
+      "last_seen": "2026-07-08T14:55:55Z"
+    },
+    {
+      "id": "L-002",
+      "key": "spec_precision_gap::acs com substantivos plurais vagos personagens efeitos devem enumerar quais quantos elementos s o exigidos sen o a verifica o n o tem desfecho preciso",
+      "text": "ACs com substantivos plurais vagos ('personagens', 'efeitos') devem enumerar quais/quantos elementos são exigidos, senão a verificação não tem desfecho preciso",
+      "signal": "spec_precision_gap",
+      "scope": "spec-writing",
+      "status": "candidate",
+      "features": [
+        "hora-de-guardar"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "GUARD-08.2 (spec-writing)"
+      ],
+      "created": "2026-07-08T14:55:55Z",
+      "last_seen": "2026-07-08T14:55:55Z"
+    },
+    {
+      "id": "L-003",
+      "key": "spec_deviation::para poucos efeitos sonoros simples sintetizar com osciladores webaudio elimina download licen a rede considerar como default na spec em vez de arquivos de udio externos",
+      "text": "Para poucos efeitos sonoros simples, sintetizar com osciladores WebAudio elimina download/licença/rede; considerar como default na spec em vez de arquivos de áudio externos",
+      "signal": "spec_deviation",
+      "scope": "audio",
+      "status": "candidate",
+      "features": [
+        "hora-de-guardar"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/feedback.js:4 (audio)"
+      ],
+      "created": "2026-07-08T14:55:55Z",
+      "last_seen": "2026-07-08T14:55:55Z"
+    }
+  ]
+}

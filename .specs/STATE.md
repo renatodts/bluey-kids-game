@@ -13,6 +13,7 @@
 
 ## Handoff
 
-- **Feature ativa:** `hora-de-guardar` — fase de planejamento (spec/design/tasks aguardando aprovação do usuário)
-- **Origem:** spec de produto aprovada em `docs/2026-07-08-hora-de-guardar-design.md`
-- **Próximo passo:** usuário aprova `tasks.md` → Execute (14 tasks, oferta de sub-agents obrigatória por >8 tasks)
+- **Feature `hora-de-guardar`: CONCLUÍDA em 2026-07-08.** 14/14 tasks (commits `5d12769..61947ac`), Verifier PASS (17/17 ACs, sensor 3/3 mutantes mortos, gates exit 0) — relatório em `.specs/features/hora-de-guardar/validation.md`.
+- Jogo jogável com `npm run dev` (build de produção validado via `npm run build` + `vite preview`).
+- Pendências conhecidas (não bloqueantes): 2 spec-precision gaps e 1 SPEC_DEVIATION (sons sintetizados) destilados como lessons candidatas L-001..L-003.
+- **Próximo passo sugerido:** teste real com a criança; possíveis follow-ups viram nova feature (novo ciclo Specify).
