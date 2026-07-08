@@ -74,15 +74,27 @@ export function createDrag({ camera, canvas, toys, floorY, onDrop, onPick }) {
     activePointerId = null;
     draggedToy = null;
     if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    // Acerto por paralaxe em tela só num soltar deliberado; cancel/saída da janela
+    // solta como "fora de caixa" — assenta no chão. (edge case da spec)
+    const deliberate = event.type === 'pointerup';
     onDrop(
       toy.userData.toyId,
       { x: toy.position.x, z: toy.position.z },
-      { x: event.clientX, y: event.clientY } // posição do ponteiro em tela (p/ acerto por paralaxe)
+      deliberate ? { x: event.clientX, y: event.clientY } : null
     );
+  }
+
+  // Sem pointer capture (ex.: eventos sintéticos), sair da janela encerra o arrasto
+  // como "solto fora". Com capture, os eventos continuam chegando — não interfere.
+  function onPointerLeave(event) {
+    if (event.pointerId !== activePointerId || !draggedToy) return;
+    if (canvas.hasPointerCapture(event.pointerId)) return;
+    endDrag(event);
   }
 
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerup', endDrag);
   canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerleave', onPointerLeave);
 }

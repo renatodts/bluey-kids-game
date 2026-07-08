@@ -10,6 +10,32 @@ import { createFeedback } from './feedback.js';
 const overlay = document.getElementById('start-overlay');
 const playButton = document.getElementById('play-button');
 
+// WebGL indisponível → mensagem estática simples, voltada ao adulto.
+// Única exceção à regra "sem texto na UI" (edge case da spec).
+function webglAvailable() {
+  if (location.hash === '#nowebgl') return false; // gancho de teste (cenário 05)
+  try {
+    const probe = document.createElement('canvas');
+    return !!(probe.getContext('webgl2') || probe.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
+
+if (!webglAvailable()) {
+  overlay.remove();
+  const message = document.createElement('div');
+  message.id = 'webgl-error';
+  message.textContent =
+    'Este navegador não consegue rodar o jogo (WebGL indisponível). Tente atualizar o navegador ou usar outro aparelho.';
+  message.style.cssText =
+    'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;' +
+    'padding:2rem;text-align:center;font-family:sans-serif;font-size:1.2rem;' +
+    'color:#333;background:#bfe6f2;z-index:20;';
+  document.body.appendChild(message);
+  throw new Error('WebGL indisponível — jogo não inicializado');
+}
+
 playButton.addEventListener('pointerup', () => {
   overlay.classList.add('hidden');
   // Gesto de usuário: única chance de destravar o WebAudio. Se falhar, jogo mudo. (GUARD-09)
