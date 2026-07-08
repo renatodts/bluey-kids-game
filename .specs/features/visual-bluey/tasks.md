@@ -190,10 +190,10 @@ T11
 - Skill: `threejs-geometry`, `threejs-animation`, `threejs-materials`
 
 **Done when**:
-- [ ] `bluey.cheer()` reinicia corretamente se chamado durante um cheer em andamento (AC VIS-03.6, checado manualmente disparando duas vezes seguidas)
-- [ ] `bluey.danceAt(pos, duration)` desloca ao centro e `returnToCorner()` volta à posição original
-- [ ] Bluey nunca é adicionada ao array `toys` do raycast de arrasto (AC VIS-03.5 — checagem de código)
-- [ ] `npm run build` passa
+- [x] `bluey.cheer()` reinicia corretamente se chamado durante um cheer em andamento (AC VIS-03.6, checado manualmente disparando duas vezes seguidas)
+- [x] `bluey.danceAt(pos, duration)` desloca ao centro e `returnToCorner()` volta à posição original
+- [x] Bluey nunca é adicionada ao array `toys` do raycast de arrasto (AC VIS-03.5 — checagem de código)
+- [x] `npm run build` passa
 
 **Tests**: none
 **Gate**: build
