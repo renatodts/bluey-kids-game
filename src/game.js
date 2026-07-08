@@ -140,6 +140,27 @@ export function createGame(storage) {
     return !!state && state.toys.every((t) => t.state === 'stored');
   }
 
+  // WIN-02/03: progresso derivado — barra = stored/total da rodada atual;
+  // estrelas = rodadas completadas (a da rodada atual acende ao completá-la).
+  function getProgress() {
+    const stored = state ? state.toys.filter((t) => t.state === 'stored').length : 0;
+    const total = state ? state.toys.length : toyCountForRound(round);
+    return {
+      round,
+      totalRounds: TOTAL_ROUNDS,
+      stored,
+      total,
+      starsLit: round - 1 + (isRoundComplete() ? 1 : 0),
+    };
+  }
+
+  // WIN-09: jogar de novo — rodada 1, save limpo, pronto para startRound().
+  function reset() {
+    round = 1;
+    state = null;
+    clearSavedRound(storage);
+  }
+
   // GUARD-05/06: incrementa a rodada e persiste o número da próxima.
   // WIN-05: após a vitória é no-op — nunca existe rodada 4.
   function advanceRound() {
@@ -161,5 +182,7 @@ export function createGame(storage) {
     tryStore,
     isRoundComplete,
     advanceRound,
+    getProgress,
+    reset,
   };
 }

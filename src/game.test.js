@@ -346,6 +346,119 @@ describe('WIN-07: storage na vitória e saves antigos', () => {
   });
 });
 
+describe('WIN-02/03: progresso derivado (barra e estrelas)', () => {
+  it('rodada 1 recém-criada: barra vazia, nenhuma estrela', () => {
+    const game = createGame(stubStorage());
+    game.seed(1);
+    game.startRound();
+    expect(game.getProgress()).toEqual({
+      round: 1,
+      totalRounds: 3,
+      stored: 0,
+      total: 6,
+      starsLit: 0,
+    });
+  });
+
+  it('cada brinquedo guardado avança stored/total da rodada atual', () => {
+    const game = createGame(stubStorage());
+    game.seed(1);
+    const { toys } = game.startRound();
+    for (const [i, toy] of toys.slice(0, 3).entries()) {
+      game.pickToy(toy.id);
+      game.tryStore(toy.id, toy.type);
+      expect(game.getProgress().stored).toBe(i + 1);
+    }
+    expect(game.getProgress().total).toBe(6);
+  });
+
+  it('completar a rodada acende a estrela da rodada (starsLit = rodada)', () => {
+    const game = createGame(stubStorage());
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    expect(game.getProgress().starsLit).toBe(1);
+  });
+
+  it('rodada nova zera a barra e mantém as estrelas das rodadas anteriores', () => {
+    const game = createGame(stubStorage());
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    game.advanceRound();
+    game.startRound();
+    expect(game.getProgress()).toEqual({
+      round: 2,
+      totalRounds: 3,
+      stored: 0,
+      total: 9,
+      starsLit: 1,
+    });
+  });
+
+  it('carregar com rodada salva N mostra N-1 estrelas e barra vazia', () => {
+    const game = createGame(stubStorage({ 'hora-de-guardar:round': '2' }));
+    const progress = game.getProgress();
+    expect(progress.starsLit).toBe(1);
+    expect(progress.stored).toBe(0);
+    expect(progress.total).toBe(9);
+  });
+
+  it('na vitória as 3 estrelas acendem e a barra está cheia', () => {
+    const game = createGame(stubStorage({ 'hora-de-guardar:round': '3' }));
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    expect(game.getProgress()).toEqual({
+      round: 3,
+      totalRounds: 3,
+      stored: 12,
+      total: 12,
+      starsLit: 3,
+    });
+  });
+});
+
+describe('WIN-09: reset para jogar de novo', () => {
+  it('reset volta à rodada 1 com storage limpo e progresso zerado', () => {
+    const storage = stubStorage({ 'hora-de-guardar:round': '3' });
+    const game = createGame(storage);
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    expect(game.getState().phase).toBe('won');
+    game.reset();
+    expect(game.currentRound).toBe(1);
+    expect(storage.getItem('hora-de-guardar:round')).toBe(null);
+    expect(game.getProgress()).toEqual({
+      round: 1,
+      totalRounds: 3,
+      stored: 0,
+      total: 6,
+      starsLit: 0,
+    });
+  });
+
+  it('startRound após reset gera a rodada 1 jogável (6 brinquedos idle)', () => {
+    const game = createGame(stubStorage({ 'hora-de-guardar:round': '3' }));
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    game.reset();
+    const state = game.startRound();
+    expect(state.round).toBe(1);
+    expect(state.phase).toBe('playing');
+    expect(state.toys).toHaveLength(6);
+    expect(state.toys.every((t) => t.state === 'idle')).toBe(true);
+  });
+
+  it('reset com storage que lança não quebra', () => {
+    const game = createGame(throwingStorage());
+    game.reset();
+    expect(game.currentRound).toBe(1);
+  });
+});
+
 describe('getState retorna cópia (hook somente leitura)', () => {
   it('mutar o retorno não altera o estado interno', () => {
     const game = createGame();
