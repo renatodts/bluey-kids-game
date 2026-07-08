@@ -11,6 +11,9 @@ const PALETTES = {
   plush: ['#c98bdb', '#f4978e', '#8ecae6', '#ffd166'],
 };
 
+// WIN-05: o jogo completo tem 3 rodadas; completar a 3ª é a vitória.
+export const TOTAL_ROUNDS = 3;
+
 // GUARD-04: rodada 1 → 6, rodada 2 → 9, rodada 3+ → 12 (repete 12).
 export function toyCountForRound(round) {
   if (round <= 1) return 6;
@@ -36,7 +39,9 @@ function readSavedRound(storage) {
   try {
     const raw = storage ? storage.getItem(STORAGE_KEY) : null;
     const value = Number(raw);
-    if (raw !== null && raw !== '' && Number.isInteger(value) && value >= 1) return value;
+    // Save > TOTAL_ROUNDS (versão antiga, sem vitória) equivale a ausente. (WIN-07)
+    if (raw !== null && raw !== '' && Number.isInteger(value) && value >= 1 && value <= TOTAL_ROUNDS)
+      return value;
   } catch {
     // modo privado / storage corrompido — segue sem persistência
   }
@@ -48,6 +53,14 @@ function writeSavedRound(storage, round) {
     if (storage) storage.setItem(STORAGE_KEY, String(round));
   } catch {
     // falha de escrita é irrelevante: progresso continua em memória
+  }
+}
+
+function clearSavedRound(storage) {
+  try {
+    if (storage) storage.removeItem(STORAGE_KEY);
+  } catch {
+    // sem storage não há save a limpar — vitória segue normal (WIN-07)
   }
 }
 
@@ -111,7 +124,12 @@ export function createGame(storage) {
     if (!toy || toy.state === 'stored') return 'rejected';
     if (toy.type === boxType) {
       toy.state = 'stored';
-      if (state.toys.every((t) => t.state === 'stored')) state.phase = 'celebrating';
+      if (state.toys.every((t) => t.state === 'stored')) {
+        // Última rodada completa = vitória; o save morre aqui, no mesmo tick,
+        // para recarga durante a festa já nascer na rodada 1. (WIN-05, WIN-07)
+        state.phase = round >= TOTAL_ROUNDS ? 'won' : 'celebrating';
+        if (state.phase === 'won') clearSavedRound(storage);
+      }
       return 'stored';
     }
     toy.state = 'idle';
@@ -123,7 +141,9 @@ export function createGame(storage) {
   }
 
   // GUARD-05/06: incrementa a rodada e persiste o número da próxima.
+  // WIN-05: após a vitória é no-op — nunca existe rodada 4.
   function advanceRound() {
+    if (state && state.phase === 'won') return round;
     round += 1;
     writeSavedRound(storage, round);
     return round;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createGame, toyCountForRound, TOY_TYPES, FLOOR_BOUNDS } from './game.js';
+import { createGame, toyCountForRound, TOY_TYPES, FLOOR_BOUNDS, TOTAL_ROUNDS } from './game.js';
 
 function countByType(toys) {
   const counts = {};
@@ -167,6 +167,9 @@ function stubStorage(initial = {}) {
     setItem: (key, value) => {
       data[key] = String(value);
     },
+    removeItem: (key) => {
+      delete data[key];
+    },
     _data: data,
   };
 }
@@ -179,7 +182,18 @@ function throwingStorage() {
     setItem: () => {
       throw new Error('storage indisponível (modo privado)');
     },
+    removeItem: () => {
+      throw new Error('storage indisponível (modo privado)');
+    },
   };
+}
+
+// Completa a rodada atual guardando cada brinquedo na caixa do próprio tipo.
+function storeAll(game) {
+  for (const toy of game.getState().toys) {
+    game.pickToy(toy.id);
+    game.tryStore(toy.id, toy.type);
+  }
 }
 
 describe('GUARD-04.1 via GUARD-05: progressão de rodadas 6→9→12→12', () => {
@@ -259,6 +273,76 @@ describe('GUARD-06: persistência da rodada', () => {
   it('advanceRound sem storage funciona (sem persistir)', () => {
     const game = createGame();
     expect(game.advanceRound()).toBe(2);
+  });
+});
+
+describe('WIN-05: vitória ao completar a 3ª rodada', () => {
+  it('completar as rodadas 1 e 2 celebra (não vence)', () => {
+    const game = createGame(stubStorage());
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    expect(game.getState().phase).toBe('celebrating');
+    game.advanceRound();
+    game.startRound();
+    storeAll(game);
+    expect(game.getState().phase).toBe('celebrating');
+  });
+
+  it('guardar o último brinquedo da rodada 3 entra na fase won', () => {
+    const game = createGame(stubStorage({ 'hora-de-guardar:round': '3' }));
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    expect(game.getState().phase).toBe('won');
+  });
+
+  it('após won, advanceRound é no-op: nunca existe rodada 4', () => {
+    const game = createGame(stubStorage({ 'hora-de-guardar:round': '3' }));
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    expect(game.advanceRound()).toBe(3);
+    expect(game.currentRound).toBe(3);
+  });
+
+  it('TOTAL_ROUNDS exportado é 3 (meta do jogo)', () => {
+    expect(TOTAL_ROUNDS).toBe(3);
+  });
+});
+
+describe('WIN-07: storage na vitória e saves antigos', () => {
+  it('vitória remove a rodada salva (próxima sessão começa na rodada 1)', () => {
+    const storage = stubStorage({ 'hora-de-guardar:round': '3' });
+    const game = createGame(storage);
+    game.seed(1);
+    game.startRound();
+    storeAll(game);
+    expect(game.getState().phase).toBe('won');
+    expect(storage.getItem('hora-de-guardar:round')).toBe(null);
+  });
+
+  it('vitória com storage que lança não quebra e ainda vence', () => {
+    // Sem storage legível o jogo carrega na rodada 1; forçamos a 3 via 2 avanços.
+    const game = createGame(throwingStorage());
+    game.seed(1);
+    game.advanceRound();
+    game.advanceRound();
+    game.startRound();
+    storeAll(game);
+    expect(game.getState().phase).toBe('won');
+  });
+
+  it('save antigo com rodada > 3 carrega na rodada 1', () => {
+    for (const old of ['4', '7', '99']) {
+      const game = createGame(stubStorage({ 'hora-de-guardar:round': old }));
+      expect(game.currentRound).toBe(1);
+    }
+  });
+
+  it('save válido dentro da meta (2 e 3) é preservado', () => {
+    expect(createGame(stubStorage({ 'hora-de-guardar:round': '2' })).currentRound).toBe(2);
+    expect(createGame(stubStorage({ 'hora-de-guardar:round': '3' })).currentRound).toBe(3);
   });
 });
 
