@@ -168,8 +168,8 @@ T11
 - Skill: `threejs-materials`
 
 **Done when**:
-- [ ] Brinquedos usam `toonMaterial`; `userData.type`/`userData.toyId` inalterados (mecânica intacta)
-- [ ] `npm run build` passa
+- [x] Brinquedos usam `toonMaterial`; `userData.type`/`userData.toyId` inalterados (mecânica intacta)
+- [x] `npm run build` passa
 
 **Tests**: none
 **Gate**: build
