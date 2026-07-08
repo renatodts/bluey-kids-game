@@ -1,4 +1,4 @@
-# Hora de Guardar! 🧸
+# Hora de Guardar!
 
 A little 3D tidy-up game with a Bluey theme, made for a small child (4 years old). The camera is never controlled by the child — it follows the action on its own (drag, success, celebration) and returns to the living-room diorama. The goal is simple: drag each toy to the right box.
 
