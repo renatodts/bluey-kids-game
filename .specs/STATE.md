@@ -16,7 +16,8 @@
 ## Handoff
 
 - **Feature `hora-de-guardar`: CONCLUÍDA em 2026-07-08.** 14/14 tasks (commits `5d12769..61947ac`), Verifier PASS (17/17 ACs, sensor 3/3 mutantes mortos, gates exit 0) — relatório em `.specs/features/hora-de-guardar/validation.md`.
-- Jogo jogável com `npm run dev` (build de produção validado via `npm run build` + `vite preview`).
-- Pendências conhecidas (não bloqueantes): 2 spec-precision gaps e 1 SPEC_DEVIATION (sons sintetizados) destilados como lessons candidatas L-001..L-003.
-- **Features `visual-bluey` e `mobile-camera`: Design aprovado em 2026-07-08.** spec.md + context.md + design.md prontos em `.specs/features/{visual-bluey,mobile-camera}/`. Próximo passo: fase Tasks (ambas Large).
-- **Pendência do usuário:** baixar manualmente o modelo "Bluey Heeler's Family" (Sketchfab, CC-BY) e salvar em `assets/bluey/bluey.glb` — instruções em `docs/references.md`. Sem o arquivo, a feature `visual-bluey` usa a Bluey procedural (fallback automático, não bloqueia implementação).
+- **Feature `visual-bluey`: CONCLUÍDA em 2026-07-08.** 11/11 tasks (commits `5c77f0f..8f616d8`), Verifier PASS (16/16 ACs P1, sensor 3/3 mutantes mortos, gates exit 0, cenários E2E 02/04 verdes via Playwright MCP contra `vite preview`) — relatório em `.specs/features/visual-bluey/validation.md`. VIS-08 (P2 celebração) e VIS-09 (P3 Bingo) fora desta entrega, Pending na spec.
+- Pendências conhecidas (não bloqueantes): lessons candidatas L-001..L-005; 1 SPEC_DEVIATION documentado em `index.html` (z-index do `#transition-overlay`: 5 em vez dos 30 do design, para ficar abaixo do start-overlay/erro WebGL).
+- **Feature `mobile-camera`: Tasks prontas, NÃO iniciada.** spec.md + context.md + design.md + tasks.md em `.specs/features/mobile-camera/`. Próximo passo: Execute (nota: `cameraDirector` deve ser módulo puro testável, cf. design de `visual-bluey`).
+- **Pendência do usuário:** baixar manualmente o modelo "Bluey Heeler's Family" (Sketchfab, CC-BY) e salvar em `assets/bluey/bluey.glb` — instruções em `docs/references.md`. Sem o arquivo, o jogo usa a Bluey procedural (fallback automático, validado); com o arquivo, revalidar o ramo `'gltf'` do cenário E2E 04 (nota em T7/validation.md).
+- Jogo jogável com `npm run dev`; build de produção validado via `npm run build` + `vite preview`.

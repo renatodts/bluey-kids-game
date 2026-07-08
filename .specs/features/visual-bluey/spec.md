@@ -150,17 +150,17 @@ O jogo funciona, mas visualmente é uma sala genérica low-poly com materiais ch
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| VIS-01 | P1: Sala dos Heeler (AC 1–3) | Design | Pending |
-| VIS-02 | P1: Sala dos Heeler (AC 4–5, fallback + rotas livres) | Design | Pending |
-| VIS-03 | P1: Bluey na cena (AC 1–3, presença + animações) | Design | Pending |
-| VIS-04 | P1: Bluey na cena (AC 4, GLTF + fallback procedural + hook) | Design | Pending |
-| VIS-05 | P1: Bluey na cena (AC 5–6, raycast + máquina de estados) | Design | Pending |
-| VIS-06 | P1: Transições (AC 1–2, abertura + entre rodadas) | Design | Pending |
-| VIS-07 | P1: Transições (AC 3–5, input gate + hook + não sobreposição) | Design | Pending |
-| VIS-08 | P2: Celebração (AC 1–2, partículas + limpeza) | Design | Pending |
-| VIS-09 | P3: Bingo | - | Pending |
+| VIS-01 | P1: Sala dos Heeler (AC 1–3) | T1–T5 | ✅ Verified |
+| VIS-02 | P1: Sala dos Heeler (AC 4–5, fallback + rotas livres) | T3 | ✅ Verified |
+| VIS-03 | P1: Bluey na cena (AC 1–3, presença + animações) | T6, T8 | ✅ Verified |
+| VIS-04 | P1: Bluey na cena (AC 4, GLTF + fallback procedural + hook) | T7, T8 | ✅ Verified (ramo `'gltf'` pendente do asset — ver validation.md) |
+| VIS-05 | P1: Bluey na cena (AC 5–6, raycast + máquina de estados) | T6 | ✅ Verified |
+| VIS-06 | P1: Transições (AC 1–2, abertura + entre rodadas) | T9, T10 | ✅ Verified |
+| VIS-07 | P1: Transições (AC 3–5, input gate + hook + não sobreposição) | T9, T10 | ✅ Verified |
+| VIS-08 | P2: Celebração (AC 1–2, partículas + limpeza) | - | Pending (P2, fora desta entrega) |
+| VIS-09 | P3: Bingo | - | Pending (P3, fora desta entrega) |
 
-**Coverage:** 9 total, 0 mapped to tasks, 9 unmapped ⚠️ (pré-design)
+**Coverage:** 9 total, 7 verified (P1 completo — Verifier PASS 2026-07-08, `validation.md`), 2 pendentes (P2/P3, não escopados)
 
 ---
 

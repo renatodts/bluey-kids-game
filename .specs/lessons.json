@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 4,
+  "next_id": 6,
   "lessons": [
     {
       "id": "L-001",
@@ -58,6 +58,42 @@
       ],
       "created": "2026-07-08T14:55:55Z",
       "last_seen": "2026-07-08T14:55:55Z"
+    },
+    {
+      "id": "L-004",
+      "key": "spec_precision_gap::ac que delega valores precisos a outro documento definidos no design s verific vel se o documento realmente fixar esses valores pinar no design ou dar o valor na pr pria ac",
+      "text": "AC que delega valores precisos a outro documento ('definidos no design') só é verificável se o documento realmente fixar esses valores — pinar no design ou dar o valor na própria AC",
+      "signal": "spec_precision_gap",
+      "scope": "spec-writing",
+      "status": "candidate",
+      "features": [
+        "visual-bluey"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "VIS-01.1 / design.md (spec-writing)"
+      ],
+      "created": "2026-07-08T18:47:06Z",
+      "last_seen": "2026-07-08T18:47:06Z"
+    },
+    {
+      "id": "L-005",
+      "key": "spec_deviation::design que introduz camada dom com z index deve enumerar as camadas overlays existentes e ordenar explicitamente valor absoluto escolhido sem esse mapa conflita com overlays j presentes",
+      "text": "Design que introduz camada DOM com z-index deve enumerar as camadas/overlays existentes e ordenar explicitamente — valor absoluto escolhido sem esse mapa conflita com overlays já presentes",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "visual-bluey"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "index.html:33 SPEC_DEVIATION z-index (design)"
+      ],
+      "created": "2026-07-08T18:47:06Z",
+      "last_seen": "2026-07-08T18:47:06Z"
     }
   ]
 }

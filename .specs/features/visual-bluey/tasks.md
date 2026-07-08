@@ -263,9 +263,9 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Testes unitários cobrem: `open()`/`close()` resolvem e mudam `state` corretamente; chamada repetida durante transição ativa não inicia uma segunda animação (AC VIS-07.5); `isBlocking()` reflete `state !== 'none'`
-- [ ] Gate passa: `npm test`
-- [ ] Test count: 4+ testes passam (sem deleção silenciosa)
+- [x] Testes unitários cobrem: `open()`/`close()` resolvem e mudam `state` corretamente; chamada repetida durante transição ativa não inicia uma segunda animação (AC VIS-07.5); `isBlocking()` reflete `state !== 'none'`
+- [x] Gate passa: `npm test`
+- [x] Test count: 4+ testes passam (sem deleção silenciosa)
 
 **Tests**: unit
 **Gate**: quick
@@ -286,10 +286,10 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Tocar play mostra a transição de abertura antes do jogo ficar interativo
-- [ ] Completar rodada mostra iris fechar/abrir entre a remoção dos brinquedos antigos e o spawn dos novos
-- [ ] Arrastar durante uma transição não move nada (`isBlocked()` ativo)
-- [ ] `npm run build && npm test` passa
+- [x] Tocar play mostra a transição de abertura antes do jogo ficar interativo
+- [x] Completar rodada mostra iris fechar/abrir entre a remoção dos brinquedos antigos e o spawn dos novos
+- [x] Arrastar durante uma transição não move nada (`isBlocked()` ativo)
+- [x] `npm run build && npm test` passa
 
 **Tests**: none (fluxo coberto no E2E de T11)
 **Gate**: build
@@ -310,9 +310,9 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Cenário 04 verde: `bluey.source` é `'gltf'` ou `'procedural'` conforme o asset disponível; fallback de frames/plaquetas continua coberto
-- [ ] Cenário 02 verde: `transition` alterna `'closing'`→`'opening'`→`'none'` entre rodadas; `bluey.mode === 'dance'` observado durante a celebração
-- [ ] `npm run build && npm test` passa
+- [x] Cenário 04 verde: `bluey.source` é `'gltf'` ou `'procedural'` conforme o asset disponível; fallback de frames/plaquetas continua coberto (executado 2026-07-08 contra `vite preview`; sem `bluey.glb` → `'procedural'` conforme AD-008; nota: contra preview a simulação de falha renomeia `dist/bluey`, não `assets/bluey`)
+- [x] Cenário 02 verde: `transition` alterna `'closing'`→`'opening'`→`'none'` entre rodadas (sequência gravada via rAF); `bluey.mode === 'dance'` observado durante a celebração; input gate confirmado (nenhum `dragging` durante o iris)
+- [x] `npm run build && npm test` passa (28/28)
 
 **Tests**: e2e
 **Gate**: full
