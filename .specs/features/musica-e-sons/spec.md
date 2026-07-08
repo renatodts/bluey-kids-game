@@ -112,7 +112,7 @@ Dimensões restantes N/A para este escopo (sem persistência nova, sem chamada e
 
 **Coverage:** 6 total, 6 mapeados (implícito em Execute, sem tasks.md formal — escopo Medium), 0 sem mapeamento.
 
-**Implementação:** `src/feedback.js` (`createAudio()`: `startMusic`/`tickMusic`/`duck`/`oops`; `createFeedback()`: `update()` chama `tickMusic()`, `rejected()`/`settle()` chamam `oops()`). Sem testes unitários dedicados — `AudioContext`/agendamento de osciladores não é testável em jsdom/Vitest; mesma exceção de AD-004 já aplicada a `chime`/`fanfare`/`victoryTune` (nenhum dos três tinha teste antes desta feature). Validação é: suite Vitest 54/54 sem regressão + `npm run build` limpo + escuta manual (`npm run dev`).
+**Implementação:** `src/feedback.js` (`createAudio()`: `startMusic`/`tickMusic`/`duck`/`oops`; `createFeedback()`: `update()` chama `tickMusic()`, `rejected()`/`settle()` chamam `oops()`). Sem testes unitários dedicados — `AudioContext`/agendamento de osciladores não é testável em jsdom/Vitest; mesma exceção de AD-004 já aplicada a `chime`/`fanfare`/`victoryTune` (nenhum dos três tinha teste antes desta feature). Validação é: suite Vitest 50/50 no commit desta feature, sem regressão (nenhum teste quebrado/removido) + `npm run build` limpo + escuta manual (`npm run dev`). Verificado de forma independente em `.specs/features/musica-e-sons/validation.md` (Verifier PASS).
 
 **Nota de emenda:** esta feature revisa o texto de `GUARD-03` (P1: Arrastar e guardar) e `GUARD-09` (P2: Som) em `.specs/features/hora-de-guardar/spec.md` — "sem som negativo" passa a "sem som punitivo tradicional; som curto e bem-humorado permitido". O texto original será atualizado com uma nota apontando para MUS-04.
 

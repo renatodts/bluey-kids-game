@@ -55,7 +55,7 @@ O jogo: guardar brinquedos 3D nas caixas certas, por tipo, na sala da família H
 1. QUANDO a criança toca/clica num brinquedo ENTÃO o sistema DEVE levantá-lo do chão e fazê-lo seguir o ponteiro sobre o plano do chão (GUARD-01)
 2. QUANDO o brinquedo é solto dentro do raio de acerto da caixa do MESMO tipo ENTÃO o sistema DEVE absorvê-lo na caixa com animação de pulo (GUARD-02)
 3. QUANDO o brinquedo é solto dentro do raio de acerto de uma caixa de tipo DIFERENTE ENTÃO o sistema DEVE balançar a caixa e devolver o brinquedo quicando ao chão, sem som punitivo tradicional (emendado por MUS-04: um toque curto e bem-humorado é permitido — ver `.specs/features/musica-e-sons/spec.md`) (GUARD-03)
-4. QUANDO o brinquedo é solto fora do raio de qualquer caixa ENTÃO o sistema DEVE assentá-lo suavemente no chão onde foi solto (emendado por MUS-04.1: mesmo toque bem-humorado de GUARD-03.3) (GUARD-03)
+4. QUANDO o brinquedo é solto fora do raio de qualquer caixa ENTÃO o sistema DEVE assentá-lo suavemente no chão onde foi solto (emendado por MUS-04.1: mesmo toque bem-humorado do critério 3 acima) (GUARD-03)
 5. QUANDO um segundo dedo toca a tela durante um arrasto ENTÃO o sistema DEVE ignorá-lo (só o primeiro ponteiro arrasta) (GUARD-01)
 
 **Independent Test**: Abrir o jogo, arrastar uma bola até a cesta → bola some na cesta; arrastar um bloco até a cesta → cesta balança e bloco volta.
