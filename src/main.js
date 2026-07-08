@@ -1,6 +1,6 @@
 // Composição: cena + jogo + arrasto + feedback + hook de teste. (T8/T9)
 import * as THREE from 'three';
-import { createScene } from './scene.js';
+import { createScene, themeStatus } from './scene.js';
 import { createGame } from './game.js';
 import { createToyMesh } from './toys.js';
 import { createBoxes } from './boxes.js';
@@ -153,8 +153,8 @@ createDrag({
 // Hook de teste E2E — somente leitura + determinismo. Contrato do design.md.
 window.__game = {
   state() {
-    // RoundState + flag de áudio (cenário 03 asserta unlock/silêncio por aqui).
-    return { ...game.getState(), audio: feedback.audioState() };
+    // RoundState + flags de áudio e tema (cenários 03/04 assertam por aqui).
+    return { ...game.getState(), audio: feedback.audioState(), theme: { ...themeStatus } };
   },
   screenPos(objectId) {
     const boxTarget = boxes.find((b) => b.type === objectId);

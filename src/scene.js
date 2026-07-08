@@ -9,21 +9,56 @@ export const ROOM = {
   floorY: 0,
 };
 
-// Quadros na parede: placeholder de cor sólida (key art entra na T12 com fallback).
+// Status do tema Bluey (lido pelo hook de teste): quantas artes oficiais carregaram.
+// Sem arte, o jogo segue com os painéis de cor sólida. (GUARD-08.3/.4)
+export const themeStatus = {
+  framesLoaded: 0,
+  plaquesLoaded: 0,
+  cheerLoaded: false,
+  cheerVisible: false,
+};
+
+// Aplica arte oficial num mesh quando (e só quando) a textura carrega; em falha,
+// mantém o material de cor sólida — o fallback É o estado inicial. (GUARD-08.4)
+export function applyArtTexture(mesh, url, onLoad) {
+  new THREE.TextureLoader().load(
+    url,
+    (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      mesh.material.map = texture;
+      mesh.material.color.set('#ffffff');
+      mesh.material.needsUpdate = true;
+      if (onLoad) onLoad(texture);
+    },
+    undefined,
+    () => console.warn(`[hora-de-guardar] arte indisponível (${url}) — usando cor sólida`)
+  );
+}
+
+// Quadros na parede: key art oficial com fallback de cor sólida. (GUARD-08.3)
+const FRAME_ART = [
+  { url: '/bluey/frame-1.jpg', w: 1.35, h: 1.9 }, // retrato
+  { url: '/bluey/frame-2.jpg', w: 2.4, h: 1.35 }, // paisagem
+  { url: '/bluey/frame-3.jpg', w: 2.4, h: 1.35 }, // paisagem
+];
+
 function createWallFrames() {
   const group = new THREE.Group();
   const colors = ['#4fa9e0', '#f6a531', '#e8748c'];
-  colors.forEach((color, i) => {
+  FRAME_ART.forEach(({ url, w, h }, i) => {
     const border = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.4, 1.8),
+      new THREE.PlaneGeometry(w + 0.3, h + 0.3),
       new THREE.MeshLambertMaterial({ color: '#8a5a33' })
     );
     border.position.set((i - 1) * 4.2, 3.6, ROOM.wallZ + 0.02);
     const panel = new THREE.Mesh(
-      new THREE.PlaneGeometry(2.1, 1.5),
-      new THREE.MeshLambertMaterial({ color })
+      new THREE.PlaneGeometry(w, h),
+      new THREE.MeshLambertMaterial({ color: colors[i] })
     );
     panel.position.set((i - 1) * 4.2, 3.6, ROOM.wallZ + 0.03);
+    applyArtTexture(panel, url, () => {
+      themeStatus.framesLoaded += 1;
+    });
     group.add(border, panel);
   });
   return group;

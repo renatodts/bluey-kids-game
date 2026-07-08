@@ -5,6 +5,7 @@
 // Reason: zero dependência de rede/asset em runtime e sem risco de licença; design.md já
 // previa WebAudio direto e a spec só pede "sons livres genéricos".
 import * as THREE from 'three';
+import { applyArtTexture, themeStatus } from './scene.js';
 
 const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 const easeInQuad = (t) => t * t;
@@ -157,10 +158,30 @@ function createAudio() {
   return { unlock, chime, fanfare, state: () => ({ unlocked, soundsPlayed }) };
 }
 
+// Bluey comemorando num canto a cada acerto (~2s). Fallback sem arte: estrela
+// festiva de cor sólida — jogo segue idêntico. (GUARD-08.1/.4)
+function createCheer(scene) {
+  const mesh = new THREE.Mesh(
+    new THREE.CircleGeometry(0.9, 5),
+    new THREE.MeshBasicMaterial({ color: '#ffd166', transparent: true })
+  );
+  mesh.position.set(5.4, 1.5, -2.4);
+  mesh.rotation.y = -0.35;
+  mesh.scale.setScalar(0);
+  scene.add(mesh);
+  applyArtTexture(mesh, '/bluey/bluey-cheer.png', () => {
+    mesh.geometry.dispose();
+    mesh.geometry = new THREE.PlaneGeometry(1.6, 2.84); // proporção do PNG (530×940)
+    themeStatus.cheerLoaded = true;
+  });
+  return mesh;
+}
+
 export function createFeedback({ scene, floorY }) {
   const tweens = [];
   const confetti = createConfetti(scene);
   const audio = createAudio();
+  const cheer = createCheer(scene);
 
   function addTween(target, duration, onUpdate, onComplete) {
     tweens.push({ target, duration, elapsed: 0, onUpdate, onComplete });
@@ -240,6 +261,26 @@ export function createFeedback({ scene, floorY }) {
     pulse(box.mesh);
     confetti.burst(box.position.x, floorY + 1.2, box.position.z); // (GUARD-08.1)
     audio.chime(); // (GUARD-09.2)
+    showCheer(); // (GUARD-08.1)
+  }
+
+  // Aparição da Bluey (~2s) com pop de entrada/saída e dancinha. (GUARD-08.1)
+  function showCheer() {
+    cancel(cheer);
+    themeStatus.cheerVisible = true;
+    addTween(
+      cheer,
+      2.2,
+      (t) => {
+        const pop = t < 0.12 ? easeOutCubic(t / 0.12) : t > 0.88 ? 1 - easeInQuad((t - 0.88) / 0.12) : 1;
+        cheer.scale.setScalar(pop);
+        cheer.position.y = 1.5 + Math.sin(t * Math.PI * 6) * 0.08;
+      },
+      () => {
+        cheer.scale.setScalar(0);
+        themeStatus.cheerVisible = false;
+      }
+    );
   }
 
   // Celebração grande ao completar a rodada: chuva de confete + caixas pulando + fanfarra.

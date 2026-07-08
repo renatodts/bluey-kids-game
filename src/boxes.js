@@ -1,15 +1,22 @@
 // Caixas-alvo: cesta (bolas), baú (blocos), caminha (bichinhos). (GUARD-02/03 alvos, GUARD-08 estrutura)
 import * as THREE from 'three';
+import { applyArtTexture, themeStatus } from './scene.js';
 
 function lambert(color, extra = {}) {
   return new THREE.MeshLambertMaterial({ color, ...extra });
 }
 
-// Placa de personagem: recebe key art na T12; sem textura (ou falha de carga),
-// o material de cor sólida abaixo É o fallback. (GUARD-08.4)
+// Placa de personagem com arte oficial (Bluey→cesta, Bingo→baú, Chilli→caminha);
+// sem textura (ou falha de carga), o material de cor sólida É o fallback. (GUARD-08.3/.4)
+const PLAQUE_ART = { ball: '/bluey/plaque-bluey.png', block: '/bluey/plaque-bingo.png', plush: '/bluey/plaque-chilli.png' };
+
 function createPlaque(type, fallbackColor) {
   const plaque = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), lambert(fallbackColor));
   plaque.name = `plaque-${type}`;
+  applyArtTexture(plaque, PLAQUE_ART[type], () => {
+    plaque.material.transparent = true; // PNG de personagem com fundo alpha
+    themeStatus.plaquesLoaded += 1;
+  });
   return plaque;
 }
 
