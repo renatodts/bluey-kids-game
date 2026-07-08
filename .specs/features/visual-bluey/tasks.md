@@ -78,8 +78,8 @@ T11
 - Skill: `threejs-materials`
 
 **Done when**:
-- [ ] `toonMaterial()` retorna `MeshToonMaterial` com `gradientMap` de 3 bandas
-- [ ] `npm run build` passa
+- [x] `toonMaterial()` retorna `MeshToonMaterial` com `gradientMap` de 3 bandas
+- [x] `npm run build` passa
 
 **Tests**: none
 **Gate**: build
