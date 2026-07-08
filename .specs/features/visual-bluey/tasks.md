@@ -123,9 +123,9 @@ T11
 - Skill: `threejs-lighting`, `threejs-materials`
 
 **Done when**:
-- [ ] Sala dos Heeler visível em `npm run dev` com sombras suaves e luz quente
-- [ ] Frames/plaquetas continuam com fallback de cor sólida se a textura falhar (regressão zero de GUARD-08.4)
-- [ ] `npm run build` passa
+- [x] Sala dos Heeler visível em `npm run dev` com sombras suaves e luz quente
+- [x] Frames/plaquetas continuam com fallback de cor sólida se a textura falhar (regressão zero de GUARD-08.4)
+- [x] `npm run build` passa
 
 **Tests**: none
 **Gate**: build

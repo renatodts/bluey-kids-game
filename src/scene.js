@@ -1,5 +1,7 @@
 // Palco: renderer, câmera fixa em perspectiva, luzes, sala e quadros. (GUARD-07, AD-002)
 import * as THREE from 'three';
+import { toonMaterial } from './materials.js';
+import { createRoom } from './room.js';
 
 export const ROOM = {
   width: 15,
@@ -48,12 +50,12 @@ function createWallFrames() {
   FRAME_ART.forEach(({ url, w, h }, i) => {
     const border = new THREE.Mesh(
       new THREE.PlaneGeometry(w + 0.3, h + 0.3),
-      new THREE.MeshLambertMaterial({ color: '#8a5a33' })
+      toonMaterial('#8a5a33')
     );
     border.position.set((i - 1) * 4.2, 3.6, ROOM.wallZ + 0.02);
     const panel = new THREE.Mesh(
       new THREE.PlaneGeometry(w, h),
-      new THREE.MeshLambertMaterial({ color: colors[i] })
+      toonMaterial(colors[i])
     );
     panel.position.set((i - 1) * 4.2, 3.6, ROOM.wallZ + 0.03);
     applyArtTexture(panel, url, () => {
@@ -72,27 +74,40 @@ export function createScene(canvas) {
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  scene.add(new THREE.AmbientLight(0xffffff, 1.1));
-  const sun = new THREE.DirectionalLight(0xffffff, 2.4);
-  sun.position.set(5, 10, 7);
+  scene.add(new THREE.AmbientLight(0xfff2d2, 1.0));
+  const sun = new THREE.DirectionalLight(0xffd38a, 2.8);
+  sun.position.set(4.5, 9, 5.5);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -ROOM.width / 2;
+  sun.shadow.camera.right = ROOM.width / 2;
+  sun.shadow.camera.top = ROOM.depth / 2;
+  sun.shadow.camera.bottom = -ROOM.depth / 2;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 20;
   scene.add(sun);
 
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM.width, ROOM.depth),
-    new THREE.MeshLambertMaterial({ color: '#d9a066' })
+    toonMaterial('#d9a066')
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(0, ROOM.floorY, ROOM.wallZ + ROOM.depth / 2);
+  floor.receiveShadow = true;
   scene.add(floor);
 
   const wall = new THREE.Mesh(
     new THREE.PlaneGeometry(ROOM.width, ROOM.wallHeight),
-    new THREE.MeshLambertMaterial({ color: '#f7e8c9' })
+    toonMaterial('#f7e8c9')
   );
   wall.position.set(0, ROOM.wallHeight / 2, ROOM.wallZ);
+  wall.receiveShadow = true;
   scene.add(wall);
 
+  scene.add(createRoom());
   scene.add(createWallFrames());
 
   // Câmera fixa: sem órbita/zoom. Resize mantém a sala inteira visível
