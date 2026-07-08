@@ -12,7 +12,7 @@ review, Verifier, discrimination sensor).
 ---
 
 **Design**: `.specs/features/hora-de-guardar/design.md`
-**Status**: Draft
+**Status**: In Progress (aprovado em 2026-07-08; execução via 2 batch workers: P1–P3 = T1–T8, P4–P5 = T9–T14)
 
 ---
 
@@ -80,7 +80,7 @@ T13 → T14
 **Depends on**: None | **Reuses**: — | **Requirement**: GUARD-07 (base)
 **Tools**: MCP: NONE | Skill: NONE
 **Done when**:
-- [ ] `npm run dev` serve a página; `npm run build` passa; `npm test` roda (0 testes) sem erro
+- [x] `npm run dev` serve a página; `npm run build` passa; `npm test` roda (0 testes) sem erro
 **Tests**: none | **Gate**: build
 **Commit**: `chore: scaffold vite + three + vitest`
 
@@ -91,8 +91,8 @@ T13 → T14
 **Depends on**: T1 | **Reuses**: — | **Requirement**: GUARD-02, GUARD-03, GUARD-04
 **Tools**: MCP: NONE | Skill: NONE
 **Done when**:
-- [ ] ACs de matching e geração cobertos por testes que derivam da spec (não da implementação)
-- [ ] Gate passa: `npm test`; contagem de testes registrada no commit
+- [x] ACs de matching e geração cobertos por testes que derivam da spec (não da implementação)
+- [x] Gate passa: `npm test`; contagem de testes registrada no commit
 **Tests**: unit | **Gate**: quick
 **Commit**: `feat(game): round generation, matching and state machine`
 
@@ -103,7 +103,7 @@ T13 → T14
 **Depends on**: T2 | **Reuses**: T2 | **Requirement**: GUARD-05 (lógica), GUARD-06
 **Tools**: MCP: NONE | Skill: NONE
 **Done when**:
-- [ ] ACs GUARD-06.1–.4 e progressão GUARD-04.1 cobertos; `npm test` passa
+- [x] ACs GUARD-06.1–.4 e progressão GUARD-04.1 cobertos; `npm test` passa
 **Tests**: unit | **Gate**: quick
 **Commit**: `feat(game): round progression and tolerant persistence`
 
@@ -114,7 +114,7 @@ T13 → T14
 **Depends on**: T1 | **Reuses**: padrão de resize dos exemplos Three.js | **Requirement**: GUARD-07
 **Tools**: MCP: `context7` (API three atual) | Skill: NONE
 **Done when**:
-- [ ] Diorama visível em `npm run dev`; sem controles de câmera; `npm run build` passa
+- [x] Diorama visível em `npm run dev`; sem controles de câmera; `npm run build` passa
 **Tests**: none | **Gate**: build
 **Commit**: `feat(scene): fixed-camera diorama room`
 
@@ -125,7 +125,7 @@ T13 → T14
 **Depends on**: T4 | **Reuses**: primitivas three | **Requirement**: GUARD-04 (visual)
 **Tools**: MCP: `context7` | Skill: NONE
 **Done when**:
-- [ ] 3 tipos distinguíveis a olho nu em cena de teste; build passa
+- [x] 3 tipos distinguíveis a olho nu em cena de teste; build passa
 **Tests**: none | **Gate**: build
 **Commit**: `feat(toys): low-poly toy factory`
 
@@ -136,7 +136,7 @@ T13 → T14
 **Depends on**: T4 | **Reuses**: T4 | **Requirement**: GUARD-02/03 (alvos), GUARD-08 (estrutura)
 **Tools**: MCP: `context7` | Skill: NONE
 **Done when**:
-- [ ] 3 caixas posicionadas na frente do diorama; fallback de textura funciona; build passa
+- [x] 3 caixas posicionadas na frente do diorama; fallback de textura funciona; build passa
 **Tests**: none | **Gate**: build
 **Commit**: `feat(boxes): three target boxes with plaque slots`
 
@@ -147,7 +147,7 @@ T13 → T14
 **Depends on**: T4, T5 | **Reuses**: padrão raycast/plane (Context7) | **Requirement**: GUARD-01
 **Tools**: MCP: `context7` | Skill: NONE
 **Done when**:
-- [ ] Arrasto funciona com mouse em `npm run dev`; build passa (comportamento completo é gate do T8)
+- [x] Arrasto funciona com mouse em `npm run dev`; build passa (comportamento completo é gate do T8)
 **Tests**: none (fluxo coberto no E2E de T8) | **Gate**: build
 **Commit**: `feat(drag): floor-plane pointer dragging`
 
@@ -158,8 +158,8 @@ T13 → T14
 **Depends on**: T2, T3, T6, T7 | **Reuses**: tudo anterior | **Requirement**: GUARD-01, GUARD-02, GUARD-03
 **Tools**: MCP: `playwright` | Skill: NONE
 **Done when**:
-- [ ] Cenário 01 executado via Playwright MCP com todos os asserts de `__game.state()` verdes + screenshots de evidência
-- [ ] `npm run build && npm test` passa
+- [x] Cenário 01 executado via Playwright MCP com todos os asserts de `__game.state()` verdes + screenshots de evidência
+- [x] `npm run build && npm test` passa
 **Tests**: e2e | **Gate**: full
 **Commit**: `feat(main): wire drag to game logic with test hook + e2e scenario 01`
 
