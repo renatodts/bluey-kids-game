@@ -160,6 +160,108 @@ describe('GUARD-05 (condição): rodada completa', () => {
   });
 });
 
+function stubStorage(initial = {}) {
+  const data = { ...initial };
+  return {
+    getItem: (key) => (key in data ? data[key] : null),
+    setItem: (key, value) => {
+      data[key] = String(value);
+    },
+    _data: data,
+  };
+}
+
+function throwingStorage() {
+  return {
+    getItem: () => {
+      throw new Error('storage indisponível (modo privado)');
+    },
+    setItem: () => {
+      throw new Error('storage indisponível (modo privado)');
+    },
+  };
+}
+
+describe('GUARD-04.1 via GUARD-05: progressão de rodadas 6→9→12→12', () => {
+  it('advanceRound faz as rodadas seguintes nascerem com 9, 12 e de novo 12', () => {
+    const game = createGame(stubStorage());
+    game.seed(1);
+    expect(game.startRound().toys).toHaveLength(6);
+    expect(game.advanceRound()).toBe(2);
+    expect(game.startRound().toys).toHaveLength(9);
+    expect(game.advanceRound()).toBe(3);
+    expect(game.startRound().toys).toHaveLength(12);
+    expect(game.advanceRound()).toBe(4);
+    expect(game.startRound().toys).toHaveLength(12);
+  });
+
+  it('rodada nova após advanceRound volta à fase playing com brinquedos idle', () => {
+    const game = createGame(stubStorage());
+    game.seed(1);
+    const { toys } = game.startRound();
+    for (const toy of toys) {
+      game.pickToy(toy.id);
+      game.tryStore(toy.id, toy.type);
+    }
+    expect(game.getState().phase).toBe('celebrating');
+    game.advanceRound();
+    const next = game.startRound();
+    expect(next.phase).toBe('playing');
+    expect(next.round).toBe(2);
+    expect(next.toys.every((t) => t.state === 'idle')).toBe(true);
+  });
+});
+
+describe('GUARD-06: persistência da rodada', () => {
+  it('ao terminar a rodada, advanceRound persiste o número da próxima rodada', () => {
+    const storage = stubStorage();
+    const game = createGame(storage);
+    expect(game.advanceRound()).toBe(2);
+    expect(storage.getItem('hora-de-guardar:round')).toBe('2');
+    expect(game.advanceRound()).toBe(3);
+    expect(storage.getItem('hora-de-guardar:round')).toBe('3');
+  });
+
+  it('abre com progresso salvo: inicia na rodada salva', () => {
+    const game = createGame(stubStorage({ 'hora-de-guardar:round': '2' }));
+    game.seed(1);
+    expect(game.currentRound).toBe(2);
+    const state = game.startRound();
+    expect(state.round).toBe(2);
+    expect(state.toys).toHaveLength(9);
+  });
+
+  it('sem storage, inicia na rodada 1', () => {
+    const game = createGame();
+    expect(game.currentRound).toBe(1);
+  });
+
+  it('valor salvo inválido inicia na rodada 1', () => {
+    for (const bad of ['abc', '', '0', '-3', '2.5', 'NaN']) {
+      const game = createGame(stubStorage({ 'hora-de-guardar:round': bad }));
+      expect(game.currentRound).toBe(1);
+    }
+  });
+
+  it('storage que lança exceção: inicia na rodada 1 silenciosamente', () => {
+    const game = createGame(throwingStorage());
+    expect(game.currentRound).toBe(1);
+    expect(game.startRound().toys).toHaveLength(6);
+  });
+
+  it('storage que lança na escrita: advanceRound segue avançando sem quebrar', () => {
+    const game = createGame(throwingStorage());
+    game.seed(1);
+    expect(game.advanceRound()).toBe(2);
+    expect(game.startRound().toys).toHaveLength(9);
+  });
+
+  it('advanceRound sem storage funciona (sem persistir)', () => {
+    const game = createGame();
+    expect(game.advanceRound()).toBe(2);
+  });
+});
+
 describe('getState retorna cópia (hook somente leitura)', () => {
   it('mutar o retorno não altera o estado interno', () => {
     const game = createGame();

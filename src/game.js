@@ -29,8 +29,30 @@ function mulberry32(seed) {
   };
 }
 
+const STORAGE_KEY = 'hora-de-guardar:round';
+
+// Wrapper tolerante: storage indisponível/inválido → rodada 1, sem quebrar. (GUARD-06)
+function readSavedRound(storage) {
+  try {
+    const raw = storage ? storage.getItem(STORAGE_KEY) : null;
+    const value = Number(raw);
+    if (raw !== null && raw !== '' && Number.isInteger(value) && value >= 1) return value;
+  } catch {
+    // modo privado / storage corrompido — segue sem persistência
+  }
+  return 1;
+}
+
+function writeSavedRound(storage, round) {
+  try {
+    if (storage) storage.setItem(STORAGE_KEY, String(round));
+  } catch {
+    // falha de escrita é irrelevante: progresso continua em memória
+  }
+}
+
 export function createGame(storage) {
-  let round = 1;
+  let round = readSavedRound(storage);
   let rng = mulberry32((Math.random() * 2 ** 31) >>> 0);
   let state = null;
 
@@ -100,6 +122,13 @@ export function createGame(storage) {
     return !!state && state.toys.every((t) => t.state === 'stored');
   }
 
+  // GUARD-05/06: incrementa a rodada e persiste o número da próxima.
+  function advanceRound() {
+    round += 1;
+    writeSavedRound(storage, round);
+    return round;
+  }
+
   return {
     get currentRound() {
       return round;
@@ -111,5 +140,6 @@ export function createGame(storage) {
     dropToy,
     tryStore,
     isRoundComplete,
+    advanceRound,
   };
 }
