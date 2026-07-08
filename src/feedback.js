@@ -1,12 +1,104 @@
-// Resposta sensorial: tweens de acerto/erro. (GUARD-02, GUARD-03)
+// Resposta sensorial: tweens de acerto/erro (GUARD-02/03), confete e celebração (GUARD-05/08).
 // Mini-tween próprio (lerp + easing) — sem dependências (design.md, Tech Decisions).
-// Confete/celebração (T10), som (T11) e Bluey (T12) entram nas próximas tasks.
+// Som (T11) e aparição da Bluey (T12) entram nas próximas tasks.
+import * as THREE from 'three';
 
 const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 const easeInQuad = (t) => t * t;
 
+// Confete: pool FIXO de partículas (sem alocação em runtime — performance em tablet).
+const CONFETTI_POOL = 150;
+const CONFETTI_COLORS = ['#e8483f', '#f6a531', '#4fa9e0', '#7bc043', '#c98bdb', '#ffd166'];
+const GRAVITY = 7;
+
+function createConfetti(scene) {
+  const geometry = new THREE.PlaneGeometry(0.14, 0.1);
+  const material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  const mesh = new THREE.InstancedMesh(geometry, material, CONFETTI_POOL);
+  mesh.frustumCulled = false;
+  const color = new THREE.Color();
+  const particles = [];
+  const dummy = new THREE.Object3D();
+  dummy.scale.setScalar(0);
+  for (let i = 0; i < CONFETTI_POOL; i++) {
+    mesh.setColorAt(i, color.set(CONFETTI_COLORS[i % CONFETTI_COLORS.length]));
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+    particles.push({ active: false, pos: new THREE.Vector3(), vel: new THREE.Vector3(), spin: 0, angle: 0, life: 0 });
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  scene.add(mesh);
+
+  function activate(pos, vel, life) {
+    const p = particles.find((q) => !q.active);
+    if (!p) return; // pool esgotado: simplesmente não emite (limite rígido)
+    p.active = true;
+    p.pos.copy(pos);
+    p.vel.copy(vel);
+    p.spin = (Math.random() - 0.5) * 10;
+    p.angle = Math.random() * Math.PI;
+    p.life = life;
+  }
+
+  // Explosãozinha na caixa a cada acerto. (GUARD-08.1)
+  function burst(x, y, z, count = 18) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 1.5 + Math.random() * 2;
+      activate(
+        new THREE.Vector3(x, y, z),
+        new THREE.Vector3(Math.cos(a) * r * 0.6, 2.5 + Math.random() * 2.5, Math.sin(a) * r * 0.4),
+        1.6
+      );
+    }
+  }
+
+  let rainTime = 0;
+
+  // Chuva de confete da celebração grande. (GUARD-05, GUARD-08.2)
+  function rain(duration = 3) {
+    rainTime = duration;
+  }
+
+  function update(dt, floorY) {
+    if (rainTime > 0) {
+      rainTime -= dt;
+      for (let i = 0; i < 3; i++) {
+        activate(
+          new THREE.Vector3((Math.random() - 0.5) * 13, 7.5, -2 + Math.random() * 6),
+          new THREE.Vector3((Math.random() - 0.5) * 1.5, -1 - Math.random() * 1.5, 0),
+          4
+        );
+      }
+    }
+    let any = false;
+    particles.forEach((p, i) => {
+      if (!p.active) return;
+      any = true;
+      p.life -= dt;
+      p.vel.y -= GRAVITY * dt * (p.vel.y < -2 ? 0 : 1); // queda com arrasto (flutua como papel)
+      p.pos.addScaledVector(p.vel, dt);
+      p.angle += p.spin * dt;
+      if (p.life <= 0 || p.pos.y < floorY + 0.02) {
+        p.active = false;
+        dummy.scale.setScalar(0);
+      } else {
+        dummy.scale.setScalar(1);
+        dummy.position.copy(p.pos);
+        dummy.rotation.set(p.angle, p.angle * 0.7, p.angle * 0.3);
+      }
+      dummy.updateMatrix();
+      mesh.setMatrixAt(i, dummy.matrix);
+    });
+    if (any) mesh.instanceMatrix.needsUpdate = true;
+  }
+
+  return { burst, rain, update };
+}
+
 export function createFeedback({ scene, floorY }) {
   const tweens = [];
+  const confetti = createConfetti(scene);
 
   function addTween(target, duration, onUpdate, onComplete) {
     tweens.push({ target, duration, elapsed: 0, onUpdate, onComplete });
@@ -31,6 +123,7 @@ export function createFeedback({ scene, floorY }) {
         if (tween.onComplete) tween.onComplete();
       }
     }
+    confetti.update(dt, floorY);
   }
 
   // Pulinho feliz da caixa ao receber um brinquedo. (GUARD-02)
@@ -83,6 +176,13 @@ export function createFeedback({ scene, floorY }) {
       () => scene.remove(toyMesh)
     );
     pulse(box.mesh);
+    confetti.burst(box.position.x, floorY + 1.2, box.position.z); // (GUARD-08.1)
+  }
+
+  // Celebração grande ao completar a rodada: chuva de confete + caixas pulando. (GUARD-05, GUARD-08.2)
+  function roundComplete(boxes) {
+    confetti.rain(3);
+    for (const box of boxes) pulse(box.mesh);
   }
 
   // Quicar de volta ao spawn em pulinhos decrescentes. (GUARD-03)
@@ -125,5 +225,5 @@ export function createFeedback({ scene, floorY }) {
     );
   }
 
-  return { update, cancel, stored, rejected, settle };
+  return { update, cancel, stored, rejected, settle, roundComplete };
 }

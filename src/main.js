@@ -119,6 +119,14 @@ function handleDrop(toyId, pos, screenXY) {
     // Sugar para a caixa com pulo; sai do raycast já (estado é 'stored'). (GUARD-02)
     toyMeshes.splice(toyMeshes.indexOf(mesh), 1);
     feedback.stored(mesh, box);
+    if (game.isRoundComplete()) {
+      // Celebração grande + próxima rodada automática em ~4s. (GUARD-05, GUARD-06)
+      feedback.roundComplete(boxes);
+      setTimeout(() => {
+        game.advanceRound();
+        spawnRound();
+      }, 4000);
+    }
   } else {
     // Caixa errada: balança a caixa e devolve o brinquedo quicando ao spawn. (GUARD-03)
     const toy = game.getState().toys.find((t) => t.id === toyId);
