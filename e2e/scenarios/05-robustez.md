@@ -1,49 +1,51 @@
-# Cenário 05 — Robustez: resize mid-drag, retrato, pointercancel, WebGL (GUARD-07 + edge cases)
+# Scenario 05 — Robustness: resize mid-drag, portrait, pointercancel, WebGL (GUARD-07 + edge cases)
 
-Executado por agente via Playwright MCP. Convenções dos cenários anteriores
-(asserts via `__game.state()`, brinquedo arrastado = o que reporta `'dragging'`).
+Executed by an agent via Playwright MCP. Conventions from previous scenarios
+(assertions via `__game.state()`, dragged toy = the one reporting `'dragging'`).
 
 ---
 
-## Parte A — Desktop 1280×800 (pointerType `mouse`)
+## Part A — Desktop 1280×800 (pointerType `mouse`)
 
-1. Navegar com `localStorage` limpo; tocar play; aguardar
-   `camera.intro === false` (recuo da abertura, ~3s); `seed(808)`.
-   **Assert**: `round === 1`, 6 brinquedos `'idle'`, `phase === 'playing'`.
-2. **GUARD-07.2 (resize durante arrasto)**: `pointerdown` num brinquedo idle,
-   ~3 `pointermove` na direção da caixa certa; `browser_resize` 900×900 com o
-   arrasto ATIVO; recalcular `screenPos` (câmera mudou) e continuar os moves até
-   a caixa certa; soltar.
-   **Assert (mid-resize)**: brinquedo segue `'dragging'` após o resize.
-   **Assert (final)**: brinquedo `'stored'` — nada quebrou.
-3. **Edge (pointercancel = solto fora)**: iniciar arrasto de outro brinquedo,
-   ~3 moves, disparar `pointercancel` (mesmo pointerId).
-   **Assert**: brinquedo volta a `'idle'` (solto como "fora", assenta no chão —
-   sem acerto por paralaxe de tela em cancel); em seguida um novo `pointerdown`
-   sobre ele pega normalmente (`'dragging'`) — soltar fora de caixa de novo.
-4. Screenshot de evidência: `e2e-05-desktop.jpeg`.
+1. Navigate with `localStorage` cleared; tap play; wait for
+   `camera.intro === false` (opening pull-back, ~3s); `seed(808)`.
+   **Assert**: `round === 1`, 6 `'idle'` toys, `phase === 'playing'`.
+2. **GUARD-07.2 (resize during drag)**: `pointerdown` on an idle toy,
+   ~3 `pointermove` toward the correct box; `browser_resize` 900×900 with the
+   drag ACTIVE; recompute `screenPos` (camera changed) and continue the moves
+   to the correct box; release.
+   **Assert (mid-resize)**: the toy keeps `'dragging'` after the resize.
+   **Assert (final)**: toy `'stored'` — nothing broke.
+3. **Edge case (pointercancel = released outside)**: start dragging another
+   toy, ~3 moves, dispatch `pointercancel` (same pointerId).
+   **Assert**: the toy goes back to `'idle'` (released as "outside", settles
+   on the floor — no success from screen parallax on cancel); afterwards a
+   new `pointerdown` on it grabs it normally (`'dragging'`) — release outside
+   a box again.
+4. Evidence screenshot: `e2e-05-desktop.jpeg`.
 
-## Parte B — Retrato 390×844 (pointerType `touch`)
+## Part B — Portrait 390×844 (pointerType `touch`)
 
-5. `browser_resize` 390×844; recarregar limpo; play; aguardar
+5. `browser_resize` 390×844; reload cleared; play; wait for
    `camera.intro === false`; `seed(909)`.
-   **Assert**: cena funcional (6 brinquedos idle).
-6. **GUARD-07 (retrato funcional)**: arrastar um brinquedo até a caixa certa
-   (touch) e soltar sobre a caixa.
+   **Assert**: scene functional (6 idle toys).
+6. **GUARD-07 (portrait functional)**: drag a toy to the correct box
+   (touch) and release over the box.
    **Assert**: `'stored'`.
-7. Screenshot de evidência: `e2e-05-retrato.jpeg`.
+7. Evidence screenshot: `e2e-05-retrato.jpeg`.
 
-## Parte C — WebGL indisponível
+## Part C — WebGL unavailable
 
-8. Navegar para a URL com `#nowebgl` (gancho de teste que simula ausência de
-   WebGL) e recarregar.
-   **Assert**: elemento `#webgl-error` presente e visível com mensagem estática;
-   `window.__game === undefined` (jogo não inicializa); overlay de play removido.
-9. Screenshot de evidência: `e2e-05-nowebgl.jpeg`. Voltar para a URL sem hash.
+8. Navigate to the URL with `#nowebgl` (test hook that simulates the absence
+   of WebGL) and reload.
+   **Assert**: `#webgl-error` element present and visible with a static
+   message; `window.__game === undefined` (game does not initialize); play
+   overlay removed.
+9. Evidence screenshot: `e2e-05-nowebgl.jpeg`. Return to the URL without the hash.
 
-## Verde quando
+## Green when
 
-- Todos os asserts confirmados.
-- Console sem erros além de: 404 de favicon e o erro proposital
-  "WebGL indisponível" da Parte C.
-- Screenshots capturados.
+- All assertions confirmed.
+- Console free of errors other than: a favicon 404 and the intentional
+  "WebGL unavailable" error from Part C.
+- Screenshots captured.

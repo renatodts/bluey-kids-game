@@ -1,28 +1,28 @@
 # "Hora de Guardar!" — Specification
 
-Derivada da spec de produto aprovada: `docs/2026-07-08-hora-de-guardar-design.md`.
+Derived from the approved product spec: `docs/2026-07-08-hora-de-guardar-design.md`.
 
 ## Problem Statement
 
-Uma criança de 4 anos que adora jogos de peças e combinações precisa de um jogo web
-simples, sem texto e sem punição, jogável em tablet (toque) e notebook (mouse).
-O jogo: guardar brinquedos 3D nas caixas certas, por tipo, na sala da família Heeler (Bluey).
+A 4-year-old child who loves piece-and-match games needs a simple web game, with no text
+and no punishment, playable on tablet (touch) and laptop (mouse).
+The game: put away 3D toys in the right boxes, by type, in the Heeler family's (Bluey) room.
 
 ## Goals
 
-- [ ] Criança de 4 anos joga sozinha, sem instruções, do primeiro toque à celebração
-- [ ] Funciona por toque (tablet/celular) e mouse (notebook) com o mesmo código
-- [ ] Zero estados punitivos: sem texto, sem tempo, sem derrota, sem contagem de erros
+- [ ] A 4-year-old plays alone, with no instructions, from the first touch to the celebration
+- [ ] Works by touch (tablet/phone) and mouse (laptop) with the same code
+- [ ] Zero punitive states: no text, no timer, no losing, no error count
 
 ## Out of Scope
 
-| Feature | Motivo |
+| Feature | Reason |
 |---------|--------|
-| Modo por cor / progressão cor→tipo | Decidido no brainstorming: só por tipo |
-| Rotação/parallax de câmera | AD-002: câmera fixa |
-| Menus, seleção de fases, múltiplas cenas | YAGNI para a primeira versão |
-| Áudio original do desenho | Difícil de obter limpo; sons livres genéricos por ora |
-| Publicação pública | AD-005: assets oficiais só para uso privado |
+| Color mode / color→type progression | Decided during brainstorming: type only |
+| Camera rotation/parallax | AD-002: fixed camera |
+| Menus, level selection, multiple scenes | YAGNI for the first version |
+| Original show audio | Hard to obtain cleanly; generic free sounds for now |
+| Public release | AD-005: official assets for private use only |
 
 ---
 
@@ -30,119 +30,119 @@ O jogo: guardar brinquedos 3D nas caixas certas, por tipo, na sala da família H
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 |---|---|---|---|
-| Multi-touch (segundo dedo durante arrasto) | Só um brinquedo arrastado por vez; primeiro ponteiro vence, demais ignorados | Simplicidade e previsibilidade para a criança | y (default lógico) |
-| Soltar brinquedo longe de qualquer caixa | Brinquedo desce suavemente ao chão onde foi solto, sem feedback de erro | Não é erro, é só "larguei" | y (default lógico) |
-| `localStorage` indisponível/corrompido | Começa na rodada 1 silenciosamente | Perder progresso é irrelevante aqui | y (default lógico) |
-| Falha ao carregar imagem oficial (key art/placa) | Fallback: painel de cor sólida com forma simples; jogo segue funcional | Jogo não pode depender de rede/asset | y (default lógico) |
-| Áudio bloqueado pelo navegador | Jogo funciona em silêncio; áudio destrava no primeiro toque (tela inicial com botão grande) | Política de autoplay mobile | y (aprovado no design) |
-| Rodada máxima | Após a rodada de 12, repete 12 com cores/posições novas indefinidamente | Progressão infinita simples | y (default lógico) |
-| Orientação de tela | Paisagem preferida; retrato funciona com layout apertado (sem bloqueio) | Não frustrar se a criança girar o tablet | y (default lógico) |
+| Multi-touch (second finger during drag) | Only one toy dragged at a time; first pointer wins, others ignored | Simplicity and predictability for the child | y (logical default) |
+| Dropping a toy far from any box | Toy settles gently on the floor where it was dropped, no error feedback | It's not an error, just "I let go" | y (logical default) |
+| `localStorage` unavailable/corrupted | Starts at round 1 silently | Losing progress is irrelevant here | y (logical default) |
+| Failure loading an official image (key art/plaque) | Fallback: solid-color panel with a simple shape; game stays functional | Game cannot depend on network/assets | y (logical default) |
+| Audio blocked by the browser | Game works in silence; audio unlocks on the first tap (start screen with a big button) | Mobile autoplay policy | y (approved in design) |
+| Maximum round | After round 12, repeats 12 with new colors/positions indefinitely | Simple infinite progression | y (logical default) |
+| Screen orientation | Landscape preferred; portrait works with a tight layout (no lock) | Don't frustrate the child if they rotate the tablet | y (logical default) |
 
-**Open questions:** none — todas resolvidas ou registradas acima.
+**Open questions:** none — all resolved or recorded above.
 
 ---
 
 ## User Stories
 
-### P1: Arrastar e guardar brinquedo ⭐ MVP
+### P1: Drag and put away a toy ⭐ MVP
 
-**User Story**: Como criança, quero arrastar um brinquedo com o dedo ou mouse até uma caixa para guardá-lo.
+**User Story**: As a child, I want to drag a toy with my finger or mouse to a box to put it away.
 
-**Why P1**: É o núcleo do jogo inteiro.
-
-**Acceptance Criteria**:
-
-1. QUANDO a criança toca/clica num brinquedo ENTÃO o sistema DEVE levantá-lo do chão e fazê-lo seguir o ponteiro sobre o plano do chão (GUARD-01)
-2. QUANDO o brinquedo é solto dentro do raio de acerto da caixa do MESMO tipo ENTÃO o sistema DEVE absorvê-lo na caixa com animação de pulo (GUARD-02)
-3. QUANDO o brinquedo é solto dentro do raio de acerto de uma caixa de tipo DIFERENTE ENTÃO o sistema DEVE balançar a caixa e devolver o brinquedo quicando ao chão, sem som punitivo tradicional (emendado por MUS-04: um toque curto e bem-humorado é permitido — ver `.specs/features/musica-e-sons/spec.md`) (GUARD-03)
-4. QUANDO o brinquedo é solto fora do raio de qualquer caixa ENTÃO o sistema DEVE assentá-lo suavemente no chão onde foi solto (emendado por MUS-04.1: mesmo toque bem-humorado do critério 3 acima) (GUARD-03)
-5. QUANDO um segundo dedo toca a tela durante um arrasto ENTÃO o sistema DEVE ignorá-lo (só o primeiro ponteiro arrasta) (GUARD-01)
-
-**Independent Test**: Abrir o jogo, arrastar uma bola até a cesta → bola some na cesta; arrastar um bloco até a cesta → cesta balança e bloco volta.
-
-### P1: Rodadas e progressão ⭐ MVP
-
-**User Story**: Como criança, quero que a sala se encha de brinquedos de novo quando eu terminar, cada vez com um pouquinho mais.
-
-**Why P1**: Sem loop de rodadas não há jogo contínuo.
+**Why P1**: This is the core of the whole game.
 
 **Acceptance Criteria**:
 
-1. QUANDO uma rodada inicia ENTÃO o sistema DEVE espalhar N brinquedos (rodada 1: 6, rodada 2: 9, rodada 3+: 12) em quantidades iguais por tipo, com variação de cor e posição (GUARD-04)
-2. QUANDO o último brinquedo da rodada é guardado ENTÃO o sistema DEVE disparar a celebração grande e iniciar a próxima rodada automaticamente após ~4s (GUARD-05)
-3. QUANDO uma rodada termina ENTÃO o sistema DEVE persistir o número da próxima rodada em `localStorage` (GUARD-06)
-4. QUANDO o jogo abre com progresso salvo ENTÃO o sistema DEVE iniciar na rodada salva; se `localStorage` estiver indisponível ou inválido, DEVE iniciar na rodada 1 (GUARD-06)
+1. WHEN the child touches/clicks a toy THEN the system MUST lift it off the floor and make it follow the pointer over the floor plane (GUARD-01)
+2. WHEN the toy is dropped within the hit radius of the box of the SAME type THEN the system MUST absorb it into the box with a jump animation (GUARD-02)
+3. WHEN the toy is dropped within the hit radius of a box of a DIFFERENT type THEN the system MUST shake the box and return the toy bouncing to the floor, with no traditional punitive sound (amended by MUS-04: a short, good-humored tone is allowed — see `.specs/features/musica-e-sons/spec.md`) (GUARD-03)
+4. WHEN the toy is dropped outside the radius of any box THEN the system MUST settle it gently on the floor where it was dropped (amended by MUS-04.1: the same good-humored tone from criterion 3 above) (GUARD-03)
+5. WHEN a second finger touches the screen during a drag THEN the system MUST ignore it (only the first pointer drags) (GUARD-01)
 
-**Independent Test**: Guardar os 6 brinquedos da rodada 1 → celebração → rodada 2 nasce com 9; recarregar a página → continua na rodada 2.
+**Independent Test**: Open the game, drag a ball to the basket → ball disappears into the basket; drag a block to the basket → basket shakes and the block returns.
 
-### P1: Diorama touch-first ⭐ MVP
+### P1: Rounds and progression ⭐ MVP
 
-**User Story**: Como criança, quero ver a sala inteira de uma vez e interagir direto, sem controles de câmera.
+**User Story**: As a child, I want the room to fill up with toys again when I finish, each time with a little more.
 
-**Why P1**: Base visual e de input de tudo.
-
-**Acceptance Criteria**:
-
-1. QUANDO o jogo carrega ENTÃO o sistema DEVE exibir o diorama (chão, parede, 3 caixas, brinquedos) com câmera fixa em perspectiva, sem controles de órbita/zoom (GUARD-07)
-2. QUANDO a janela muda de tamanho ou orientação ENTÃO o sistema DEVE reajustar renderer e câmera mantendo a cena inteira visível e o arrasto em andamento funcional (GUARD-07)
-3. QUANDO usado em touch ou mouse ENTÃO o sistema DEVE responder ao arrasto com o mesmo comportamento (Pointer Events) (GUARD-01, GUARD-07)
-
-**Independent Test**: Abrir em desktop e num tablet; redimensionar a janela no meio de um arrasto — nada quebra.
-
-### P2: Feedback festivo e tema Bluey
-
-**User Story**: Como criança fã de Bluey, quero que a Bluey comemore comigo a cada acerto.
-
-**Why P2**: O jogo funciona sem, mas é o que dá alma — entra logo após o MVP jogável.
+**Why P1**: Without a round loop there is no continuous game.
 
 **Acceptance Criteria**:
 
-1. QUANDO um brinquedo é guardado corretamente ENTÃO o sistema DEVE emitir confete de partículas na caixa e mostrar a Bluey comemorando num canto por ~2s (GUARD-08)
-2. QUANDO a rodada termina ENTÃO o sistema DEVE exibir celebração grande: personagens, chuva de confete e fanfarra (GUARD-08)
-3. QUANDO a cena monta ENTÃO o sistema DEVE exibir key art oficial como quadros na parede e placas de personagem nas caixas (Bluey→cesta, Bingo→baú, Chilli/Bandit→caminha) (GUARD-08)
-4. QUANDO um asset de imagem falha ao carregar ENTÃO o sistema DEVE usar fallback de cor sólida e seguir jogável (GUARD-08)
+1. WHEN a round starts THEN the system MUST scatter N toys (round 1: 6, round 2: 9, round 3+: 12) in equal amounts per type, with color and position variation (GUARD-04)
+2. WHEN the round's last toy is put away THEN the system MUST trigger the big celebration and start the next round automatically after ~4s (GUARD-05)
+3. WHEN a round ends THEN the system MUST persist the next round number in `localStorage` (GUARD-06)
+4. WHEN the game opens with saved progress THEN the system MUST start at the saved round; if `localStorage` is unavailable or invalid, it MUST start at round 1 (GUARD-06)
 
-**Independent Test**: Acertar um brinquedo → confete + Bluey; renomear um asset para simular falha → jogo abre normal com painéis de cor.
+**Independent Test**: Put away all 6 toys of round 1 → celebration → round 2 starts with 9; reload the page → continues at round 2.
 
-### P2: Som
+### P1: Touch-first diorama ⭐ MVP
 
-**User Story**: Como criança, quero sons de festa quando acerto.
+**User Story**: As a child, I want to see the whole room at once and interact directly, with no camera controls.
 
-**Why P2**: Reforço positivo importante, mas o jogo é jogável mudo.
+**Why P1**: The visual and input base for everything.
 
 **Acceptance Criteria**:
 
-1. QUANDO o primeiro toque/clique acontece (botão grande de play na tela inicial) ENTÃO o sistema DEVE destravar o WebAudio (GUARD-09)
-2. QUANDO um brinquedo é guardado corretamente ENTÃO o sistema DEVE tocar um som curto de acerto; QUANDO a rodada termina, uma fanfarra (GUARD-09)
-3. QUANDO o áudio não puder ser destravado ENTÃO o sistema DEVE seguir funcional em silêncio (GUARD-09)
-4. QUANDO o áudio é destravado ENTÃO o sistema DEVE também iniciar uma música de fundo em loop, sempre em volume mais baixo que os efeitos de acerto/erro/fanfarra/vitória (emenda: ver `.specs/features/musica-e-sons/spec.md`, MUS-01/02/03)
+1. WHEN the game loads THEN the system MUST display the diorama (floor, wall, 3 boxes, toys) with a fixed perspective camera, with no orbit/zoom controls (GUARD-07)
+2. WHEN the window changes size or orientation THEN the system MUST readjust the renderer and camera keeping the whole scene visible and any in-progress drag functional (GUARD-07)
+3. WHEN used with touch or mouse THEN the system MUST respond to dragging with the same behavior (Pointer Events) (GUARD-01, GUARD-07)
 
-**Independent Test**: Tocar play → acertar → som; abrir com som do sistema mutado → jogo segue normal.
+**Independent Test**: Open on desktop and on a tablet; resize the window in the middle of a drag — nothing breaks.
+
+### P2: Festive feedback and Bluey theme
+
+**User Story**: As a child who's a Bluey fan, I want Bluey to celebrate with me every time I succeed.
+
+**Why P2**: The game works without it, but it's what gives it soul — comes right after the playable MVP.
+
+**Acceptance Criteria**:
+
+1. WHEN a toy is put away correctly THEN the system MUST emit particle confetti at the box and show Bluey celebrating in a corner for ~2s (GUARD-08)
+2. WHEN the round ends THEN the system MUST display the big celebration: characters, confetti rain and a fanfare (GUARD-08)
+3. WHEN the scene is set up THEN the system MUST display official key art as wall frames and character plaques on the boxes (Bluey→basket, Bingo→chest, Chilli/Bandit→bed) (GUARD-08)
+4. WHEN an image asset fails to load THEN the system MUST use a solid-color fallback and remain playable (GUARD-08)
+
+**Independent Test**: Successfully place a toy → confetti + Bluey; rename an asset to simulate failure → game opens normally with color panels.
+
+### P2: Sound
+
+**User Story**: As a child, I want party sounds when I succeed.
+
+**Why P2**: Important positive reinforcement, but the game is playable muted.
+
+**Acceptance Criteria**:
+
+1. WHEN the first tap/click happens (big play button on the start screen) THEN the system MUST unlock WebAudio (GUARD-09)
+2. WHEN a toy is put away correctly THEN the system MUST play a short success sound; WHEN the round ends, a fanfare (GUARD-09)
+3. WHEN audio cannot be unlocked THEN the system MUST remain functional in silence (GUARD-09)
+4. WHEN audio is unlocked THEN the system MUST also start looping background music, always at a lower volume than the success/error/fanfare/victory effects (amendment: see `.specs/features/musica-e-sons/spec.md`, MUS-01/02/03)
+
+**Independent Test**: Tap play → succeed → sound; open with the system sound muted → game continues normally.
 
 ---
 
 ## Edge Cases
 
-- QUANDO o ponteiro sai da janela durante o arrasto ENTÃO o sistema DEVE soltar o brinquedo como "solto fora de caixa" (assenta no chão)
-- QUANDO dois brinquedos se sobrepõem no toque ENTÃO o sistema DEVE pegar o mais próximo da câmera (primeiro hit do raycast)
-- QUANDO `localStorage` lança exceção (modo privado) ENTÃO o sistema DEVE capturar e seguir sem persistência
-- QUANDO WebGL não está disponível ENTÃO o sistema DEVE mostrar uma mensagem simples estática (única exceção à regra "sem texto" — voltada ao adulto)
+- WHEN the pointer leaves the window during a drag THEN the system MUST release the toy as "dropped outside a box" (settles on the floor)
+- WHEN two toys overlap at the touch point THEN the system MUST pick the one closest to the camera (first raycast hit)
+- WHEN `localStorage` throws an exception (private mode) THEN the system MUST catch it and continue without persistence
+- WHEN WebGL is not available THEN the system MUST show a simple static message (the only exception to the "no text" rule — aimed at the adult)
 
 ---
 
 ## Implicit-Requirement Dimensions (sweep)
 
-| Dimensão | Resolução |
+| Dimension | Resolution |
 |---|---|
-| Input validation & bounds | Arrasto limitado à área do chão do diorama (clamp); multi-touch ignorado além do 1º ponteiro |
-| Failure / partial-failure | Fallback de assets (GUARD-08.4); áudio opcional (GUARD-09.3); localStorage tolerante (GUARD-06) |
-| Idempotency / retry | N/A — sem operações remotas |
-| Auth & rate limits | N/A — jogo local sem backend |
-| Concurrency / ordering | Um arrasto por vez; eventos de ponteiro serializados pelo navegador |
-| Data lifecycle | Só o número da rodada em `localStorage`; sem expiração (irrelevante) |
-| Observability | N/A — `console.warn` em falha de asset é suficiente para uso doméstico |
-| External-dependency failure | Sem dependências em runtime (assets locais, sem rede) |
-| State-transition integrity | Máquina de estados da rodada: `playing → celebrating → playing`; brinquedo: `idle → dragging → (stored | dropped)` — transições cobertas por testes de `game.js` |
+| Input validation & bounds | Dragging limited to the diorama floor area (clamp); multi-touch ignored beyond the 1st pointer |
+| Failure / partial-failure | Asset fallback (GUARD-08.4); optional audio (GUARD-09.3); tolerant localStorage (GUARD-06) |
+| Idempotency / retry | N/A — no remote operations |
+| Auth & rate limits | N/A — local game with no backend |
+| Concurrency / ordering | One drag at a time; pointer events serialized by the browser |
+| Data lifecycle | Only the round number in `localStorage`; no expiration (irrelevant) |
+| Observability | N/A — `console.warn` on asset failure is enough for home use |
+| External-dependency failure | No runtime dependencies (local assets, no network) |
+| State-transition integrity | Round state machine: `playing → celebrating → playing`; toy: `idle → dragging → (stored | dropped)` — transitions covered by `game.js` tests |
 
 ---
 
@@ -150,22 +150,22 @@ O jogo: guardar brinquedos 3D nas caixas certas, por tipo, na sala da família H
 
 | Requirement ID | Story | Phase | Status |
 |---|---|---|---|
-| GUARD-01 | P1: Arrastar e guardar | Execute | Implemented |
-| GUARD-02 | P1: Arrastar e guardar | Execute | Implemented |
-| GUARD-03 | P1: Arrastar e guardar | Execute | Implemented |
-| GUARD-04 | P1: Rodadas e progressão | Execute | Implemented |
-| GUARD-05 | P1: Rodadas e progressão | Execute | Implemented |
-| GUARD-06 | P1: Rodadas e progressão | Execute | Implemented |
-| GUARD-07 | P1: Diorama touch-first | Execute | Implemented |
-| GUARD-08 | P2: Feedback e tema Bluey | Execute | Implemented |
-| GUARD-09 | P2: Som | Execute | Implemented |
+| GUARD-01 | P1: Drag and put away | Execute | Implemented |
+| GUARD-02 | P1: Drag and put away | Execute | Implemented |
+| GUARD-03 | P1: Drag and put away | Execute | Implemented |
+| GUARD-04 | P1: Rounds and progression | Execute | Implemented |
+| GUARD-05 | P1: Rounds and progression | Execute | Implemented |
+| GUARD-06 | P1: Rounds and progression | Execute | Implemented |
+| GUARD-07 | P1: Touch-first diorama | Execute | Implemented |
+| GUARD-08 | P2: Feedback and Bluey theme | Execute | Implemented |
+| GUARD-09 | P2: Sound | Execute | Implemented |
 
-**Coverage:** 9 total, 9 mapeados em tasks, 0 sem mapeamento.
+**Coverage:** 9 total, 9 mapped to tasks, 0 unmapped.
 
 ---
 
 ## Success Criteria
 
-- [ ] Criança de 4 anos completa uma rodada inteira sem ajuda de adulto (teste real em família)
-- [ ] Mesmo build roda em tablet (touch) e notebook (mouse) sem ajuste
-- [ ] Nenhum estado do jogo trava a progressão (soltar fora, multi-touch, resize, reload)
+- [ ] A 4-year-old completes a full round without adult help (real family test)
+- [ ] The same build runs on tablet (touch) and laptop (mouse) with no adjustment
+- [ ] No game state blocks progression (dropping outside, multi-touch, resize, reload)

@@ -1,53 +1,55 @@
-# Cenário 04 — Tema Bluey, personagem 3D e fallback (GUARD-08, VIS-03, VIS-04)
+# Scenario 04 — Bluey theme, 3D character and fallback (GUARD-08, VIS-03, VIS-04)
 
-Executado por agente via Playwright MCP. Convenções dos cenários anteriores.
-O hook expõe `state().theme = { framesLoaded, plaquesLoaded }` e
+Executed by an agent via Playwright MCP. Conventions from previous scenarios.
+The hook exposes `state().theme = { framesLoaded, plaquesLoaded }` and
 `state().bluey = { source, mode }` (`source: 'gltf' | 'procedural'`,
 `mode: 'idle' | 'cheer' | 'dance'`).
 
-Assets oficiais em `assets/bluey/` (ver `assets/bluey/README.md`; AD-005: uso
-privado). Servidos em `/bluey/*`. O fallback de cor sólida é o estado inicial
-dos painéis — a arte só substitui quando a textura carrega com sucesso. A
-personagem Bluey 3D tenta carregar `/bluey/bluey.glb` (GLTF fan-made, baixado
-manualmente — ver `docs/references.md`); sem o arquivo, usa o modelo procedural
-low-poly (AD-008) — o jogo nunca fica sem a personagem.
+Official assets live in `assets/bluey/` (see `assets/bluey/README.md`;
+AD-005: private use). Served under `/bluey/*`. The solid-color fallback is
+the initial state of the panels — the artwork only replaces it once the
+texture loads successfully. The 3D Bluey character tries to load
+`/bluey/bluey.glb` (fan-made GLTF, downloaded manually — see
+`docs/references.md`); without the file, it uses the low-poly procedural
+model (AD-008) — the game never ends up without the character.
 
 ---
 
-## Parte A — Tema presente (viewport 1280×800)
+## Part A — Theme present (viewport 1280×800)
 
-1. Navegar com `localStorage` limpo; tocar play; aguardar a transição de
-   abertura terminar (`transition === 'none'`), o recuo da câmera
-   (`camera.intro === false`, ~3s) e ~1s para a carga das texturas.
-   **Assert (GUARD-08.3)**: `theme.framesLoaded === 3` (quadros na parede) e
-   `theme.plaquesLoaded === 3` (placas Bluey/Bingo/Chilli).
-   **Assert (VIS-04)**: `bluey.source === 'gltf'` se `assets/bluey/bluey.glb`
-   existir; senão `bluey.source === 'procedural'` (fallback automático). Em
-   ambos os casos `bluey.mode === 'idle'`.
-2. **VIS-03 (Bluey comemora acerto)**: `seed(606)`; arrastar um brinquedo até a
-   caixa certa e soltar.
-   **Assert**: brinquedo `'stored'`; logo após o acerto `bluey.mode === 'cheer'`;
-   após ~2.5s `bluey.mode === 'idle'` (comemoração termina sozinha).
-3. Screenshot de evidência com o tema: `e2e-04-tema.jpeg` (quadros + placas +
-   personagem Bluey no canto visíveis).
+1. Navigate with `localStorage` cleared; tap play; wait for the opening
+   transition to finish (`transition === 'none'`), the camera pull-back
+   (`camera.intro === false`, ~3s) and ~1s for the textures to load.
+   **Assert (GUARD-08.3)**: `theme.framesLoaded === 3` (frames on the wall)
+   and `theme.plaquesLoaded === 3` (Bluey/Bingo/Chilli plaques).
+   **Assert (VIS-04)**: `bluey.source === 'gltf'` if `assets/bluey/bluey.glb`
+   exists; otherwise `bluey.source === 'procedural'` (automatic fallback). In
+   both cases `bluey.mode === 'idle'`.
+2. **VIS-03 (Bluey celebrates a success)**: `seed(606)`; drag a toy to the
+   correct box and release.
+   **Assert**: toy `'stored'`; right after the success `bluey.mode === 'cheer'`;
+   after ~2.5s `bluey.mode === 'idle'` (celebration ends on its own).
+3. Evidence screenshot with the theme: `e2e-04-tema.jpeg` (frames + plaques +
+   Bluey character in the corner all visible).
 
-## Parte B — Falha de asset → fallback funcional (GUARD-08.4, VIS-04)
+## Part B — Asset failure → functional fallback (GUARD-08.4, VIS-04)
 
-4. Simular falha: renomear `assets/bluey` para `assets/bluey-off` (fora do browser)
-   e recarregar a página com `localStorage` limpo; tocar play; aguardar ~1s.
+4. Simulate failure: rename `assets/bluey` to `assets/bluey-off` (outside the
+   browser) and reload the page with `localStorage` cleared; tap play; wait
+   ~1s.
    **Assert**: `theme.framesLoaded === 0`, `theme.plaquesLoaded === 0`;
-   `bluey.source === 'procedural'` (GLTF indisponível → modelo próprio);
-   `console.warn` de arte/modelo indisponível presente (falha tratada, não
-   erro fatal).
-5. Jogo segue jogável: `seed(707)`; arrastar um brinquedo até a caixa certa.
-   **Assert**: brinquedo `'stored'`; `phase` coerente; a Bluey procedural ainda
-   comemora (`bluey.mode === 'cheer'` logo após o acerto).
-6. Screenshot de evidência do fallback: `e2e-04-fallback.jpeg`.
-7. Restaurar: renomear `assets/bluey-off` de volta para `assets/bluey`.
+   `bluey.source === 'procedural'` (GLTF unavailable → own model);
+   `console.warn` about unavailable artwork/model present (handled failure,
+   not a fatal error).
+5. Game remains playable: `seed(707)`; drag a toy to the correct box.
+   **Assert**: toy `'stored'`; `phase` coherent; the procedural Bluey still
+   celebrates (`bluey.mode === 'cheer'` right after the success).
+6. Evidence screenshot of the fallback: `e2e-04-fallback.jpeg`.
+7. Restore: rename `assets/bluey-off` back to `assets/bluey`.
 
-## Verde quando
+## Green when
 
-- Parte A e Parte B com todos os asserts confirmados.
-- Nenhum erro de console além de 404 de favicon e dos 404/warnings esperados dos
-  assets removidos na Parte B.
-- Screenshots capturados.
+- Part A and Part B with all assertions confirmed.
+- No console errors other than a favicon 404 and the 404s/warnings expected
+  from the assets removed in Part B.
+- Screenshots captured.

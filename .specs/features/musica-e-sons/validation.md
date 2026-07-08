@@ -1,4 +1,4 @@
-# Música e Sons Validation
+# Music and Sounds Validation
 
 **Date**: 2026-07-08
 **Spec**: `.specs/features/musica-e-sons/spec.md`
@@ -14,27 +14,27 @@ No formal `tasks.md` exists for this feature (Medium-scope, inline Execute per t
 
 | Criterion | Spec-defined outcome | Evidence | Result |
 | --------- | --------------------- | -------- | ------ |
-| MUS-01 | WebAudio destravado → inicia trilha sintetizada, curta e alegre, em loop contínuo enquanto o jogo está aberto | `src/feedback.js:145` (`unlock()` → `if (unlocked) startMusic();`); `:196-203` (`startMusic()` cria `musicBus`, `musicRunning=true`); `:205-213` (`tickMusic()` agenda o próximo loop com lookahead de 0.5s a partir de `ctx.currentTime`, não de `dt`); `:293` (`update(dt)` chama `audio.tickMusic()` a cada frame); confirmado que `update(dt)` roda indefinidamente via `renderer.setAnimationLoop` em `src/main.js:345-370` (chamada incondicional de `feedback.update(dt)` em `:367`) | ✅ PASS |
-| MUS-02 | Trilha sempre perceptivelmente mais baixa que qualquer efeito (chime/oops/fanfare/victoryTune) | `src/feedback.js:108` (`MUSIC_BASE_GAIN = 0.05`) multiplicado pelo peak de cada nota da melodia (0.3–0.55, `:111-127`) via grafo em série `osc→gain(peak)→musicBus(0.05)→destination` (`:191-192`, `noteTo` recebe `musicBus` como destino) — ganho efetivo da música ≈0.015–0.028; efeitos usam `note()` → conecta direto a `ctx.destination` (`:165-166`), sem o fator 0.05, com peaks 0.16–0.22 (chime/fanfare/victoryTune, `:216-234`) e 0.18 (oops, `:246`) — 6–14× mais alto que a música | ✅ PASS |
-| MUS-03 | Qualquer efeito (chime/oops/fanfare/victoryTune) → duck da música por uma fração de segundo, retornando ao volume base | `duck()` em `:171-178` (ramp linear até `MUSIC_DUCK_GAIN` em 0.04s, depois de volta a `MUSIC_BASE_GAIN` ao fim de `duration`); disparado via `safePlay(fn, duckDuration)` (`:180-189`, linha 183: `if (duckDuration) duck(duckDuration);`); todos os 4 call sites passam `duckDuration` truthy: chime `0.4` (`:219`), fanfare `1.5` (`:225`), victoryTune `2.5` (`:234`), oops `0.4` (`:251`) | ✅ PASS |
-| MUS-03.1 | Dois efeitos em sequência rápida → duck estável, sem "presa" em volume baixo nem salto abrupto | `duck()` `:172-177`: `cancelScheduledValues(t0)` + `setValueAtTime(gain.value, t0)` antes de agendar as novas rampas — cancela ramps anteriores a partir do valor *atual* (sem descontinuidade), depois agenda nova rampa linear até a base. Um segundo `duck()` chamado antes do primeiro terminar reinicia a partir de onde o volume estava, nunca trava embaixo (a rampa de retorno é sempre reagendada) | ✅ PASS |
-| MUS-04 | Brinquedo solto em caixa de tipo errado → além do balanço visual (GUARD-03), toca som curto e bem-humorado (nunca buzzer/punição) | `src/feedback.js:390` (`rejected()` → `audio.oops(); // (MUS-04)`, chamado após `wobble(box.mesh)` em `:389`); `oops()` em `:236-251`: oscilador `triangle`, glide descendente 520→260Hz em 0.26s ("boop"), duração total 0.35s, peak 0.18 — sem característica de buzzer (sem `square`/sustain longo) | ✅ PASS |
-| MUS-04.1 | Brinquedo solto fora de qualquer caixa → mesmo som de MUS-04 | `src/feedback.js:396` (`settle()` → `audio.oops(); // (MUS-04.1)`, mesma função `oops` reutilizada, garantindo som idêntico) | ✅ PASS |
+| MUS-01 | WebAudio unlocked → starts a synthesized track, short and cheerful, looping continuously while the game is open | `src/feedback.js:145` (`unlock()` → `if (unlocked) startMusic();`); `:196-203` (`startMusic()` creates `musicBus`, `musicRunning=true`); `:205-213` (`tickMusic()` schedules the next loop with a 0.5s lookahead from `ctx.currentTime`, not from `dt`); `:293` (`update(dt)` calls `audio.tickMusic()` every frame); confirmed that `update(dt)` runs indefinitely via `renderer.setAnimationLoop` in `src/main.js:345-370` (unconditional call to `feedback.update(dt)` at `:367`) | ✅ PASS |
+| MUS-02 | Track always noticeably quieter than any effect (chime/oops/fanfare/victoryTune) | `src/feedback.js:108` (`MUSIC_BASE_GAIN = 0.05`) multiplied by each melody note's peak (0.3–0.55, `:111-127`) via a series graph `osc→gain(peak)→musicBus(0.05)→destination` (`:191-192`, `noteTo` receives `musicBus` as the destination) — effective music gain ≈0.015–0.028; effects use `note()` → connect directly to `ctx.destination` (`:165-166`), without the 0.05 factor, with peaks of 0.16–0.22 (chime/fanfare/victoryTune, `:216-234`) and 0.18 (oops, `:246`) — 6–14× louder than the music | ✅ PASS |
+| MUS-03 | Any effect (chime/oops/fanfare/victoryTune) → duck the music for a fraction of a second, returning to base volume | `duck()` at `:171-178` (linear ramp down to `MUSIC_DUCK_GAIN` over 0.04s, then back up to `MUSIC_BASE_GAIN` at the end of `duration`); triggered via `safePlay(fn, duckDuration)` (`:180-189`, line 183: `if (duckDuration) duck(duckDuration);`); all 4 call sites pass a truthy `duckDuration`: chime `0.4` (`:219`), fanfare `1.5` (`:225`), victoryTune `2.5` (`:234`), oops `0.4` (`:251`) | ✅ PASS |
+| MUS-03.1 | Two effects in quick succession → stable duck, no "stuck" low volume nor abrupt jump | `duck()` `:172-177`: `cancelScheduledValues(t0)` + `setValueAtTime(gain.value, t0)` before scheduling the new ramps — cancels previous ramps starting from the *current* value (no discontinuity), then schedules a new linear ramp back to base. A second `duck()` called before the first one finishes restarts from wherever the volume was, never getting stuck low (the return ramp is always rescheduled) | ✅ PASS |
+| MUS-04 | Toy dropped in a wrong-type box → in addition to the visual wobble (GUARD-03), plays a short and good-humored sound (never buzzer/punishment) | `src/feedback.js:390` (`rejected()` → `audio.oops(); // (MUS-04)`, called after `wobble(box.mesh)` at `:389`); `oops()` at `:236-251`: `triangle` oscillator, descending glide 520→260Hz over 0.26s ("boop"), total duration 0.35s, peak 0.18 — no buzzer characteristics (no `square`/long sustain) | ✅ PASS |
+| MUS-04.1 | Toy dropped outside any box → same sound as MUS-04 | `src/feedback.js:396` (`settle()` → `audio.oops(); // (MUS-04.1)`, same `oops` function reused, guaranteeing an identical sound) | ✅ PASS |
 
-**Result**: 6/6 ACs com evidência file:line direta — todas as citações confirmadas por leitura do código, não apenas "algo relacionado existe".
+**Result**: 6/6 ACs with direct file:line evidence — all citations confirmed by reading the code, not just "something related exists."
 
 ---
 
-## Manual Code-Path Trace (substitui sensor de mutação — sem testes unitários por design)
+## Manual Code-Path Trace (substitutes for the mutation sensor — no unit tests by design)
 
 | # | Question | File:line evidence | Verdict |
 | - | -------- | ------------------- | ------- |
-| a | `unlock()` chama `startMusic()` no sucesso, e `startMusic()` é idempotente contra double-start? | `feedback.js:145` (`if (unlocked) startMusic();`, chamado sincronamente logo após `unlocked = ctx.state === 'running'`, sem `await` entre as duas linhas — sem janela de corrida); `feedback.js:197` (`if (!unlocked \|\| musicRunning) return;` — segunda chamada a `startMusic()`, inclusive de um segundo `unlock()`, é no-op) | ✅ PASS |
-| b | `audio.tickMusic()` é chamado todo frame a partir de `update(dt)` de `createFeedback()`? | `feedback.js:293` (`audio.tickMusic(); // (MUS-01)`, última linha de `update(dt)`); `update(dt)` por sua vez é chamado incondicionalmente a cada frame do `renderer.setAnimationLoop` em `src/main.js:367` | ✅ PASS |
-| c | `duck()` é disparado para os 4 sons de efeito, i.e. `safePlay` recebe `duckDuration` truthy nos 4 call sites? | `chime` `:219` (`0.4`), `fanfare` `:225` (`1.5`), `victoryTune` `:234` (`2.5`), `oops` `:251` (`0.4`) — todos truthy, todos passam por `safePlay(fn, duckDuration)` (`:180`) | ✅ PASS |
-| d | `audio.oops()` é chamado tanto em `rejected()` quanto em `settle()`? | `rejected()`: `feedback.js:390`; `settle()`: `feedback.js:396` — ambos chamam a mesma função `oops` | ✅ PASS |
-| e | `musicBus` roteia por um gain node separado do usado por `note()` para sfx, de forma que duck nunca afeta os efeitos? | `note()` (`:165-166`) conecta sempre a `ctx.destination` diretamente; `scheduleMusicLoop()` (`:191-192`) conecta sempre via `noteTo(musicBus, ...)`; `musicBus` é seu próprio `GainNode` (`:198-200`, conectado a `ctx.destination`) manipulado só por `duck()` (`:174-177`) — grafos de áudio fisicamente distintos, ducking do bus da música não toca no ganho dos osciladores de efeito | ✅ PASS |
-| f | Existe race em que `duck()` seria chamado antes de `musicBus` existir (ex. antes de `startMusic()` rodar)? Está guardado com segurança? | `duck()` `:172` (`if (!musicBus) return;`); adicionalmente, `duck()` só é alcançável via `safePlay()`, que exige `unlocked === true` (`:181`) — e `unlocked` só vira `true` dentro de `unlock()`, que chama `startMusic()` sincronamente na sequência seguinte (`:145`), sem `await` entre as duas — não há tarefa concorrente possível entre elas em JS single-thread. O guard em `:172` cobre o caso defensivamente mesmo assim | ✅ PASS (guarded) |
+| a | Does `unlock()` call `startMusic()` on success, and is `startMusic()` idempotent against a double start? | `feedback.js:145` (`if (unlocked) startMusic();`, called synchronously right after `unlocked = ctx.state === 'running'`, with no `await` between the two lines — no race window); `feedback.js:197` (`if (!unlocked \|\| musicRunning) return;` — a second call to `startMusic()`, including from a second `unlock()`, is a no-op) | ✅ PASS |
+| b | Is `audio.tickMusic()` called every frame from `update(dt)` in `createFeedback()`? | `feedback.js:293` (`audio.tickMusic(); // (MUS-01)`, last line of `update(dt)`); `update(dt)` is in turn called unconditionally every frame from `renderer.setAnimationLoop` in `src/main.js:367` | ✅ PASS |
+| c | Is `duck()` triggered for all 4 effect sounds, i.e. does `safePlay` receive a truthy `duckDuration` at all 4 call sites? | `chime` `:219` (`0.4`), `fanfare` `:225` (`1.5`), `victoryTune` `:234` (`2.5`), `oops` `:251` (`0.4`) — all truthy, all go through `safePlay(fn, duckDuration)` (`:180`) | ✅ PASS |
+| d | Is `audio.oops()` called both in `rejected()` and in `settle()`? | `rejected()`: `feedback.js:390`; `settle()`: `feedback.js:396` — both call the same `oops` function | ✅ PASS |
+| e | Does `musicBus` route through a gain node separate from the one used by `note()` for sfx, so that ducking never affects the effects? | `note()` (`:165-166`) always connects directly to `ctx.destination`; `scheduleMusicLoop()` (`:191-192`) always connects via `noteTo(musicBus, ...)`; `musicBus` is its own `GainNode` (`:198-200`, connected to `ctx.destination`) manipulated only by `duck()` (`:174-177`) — physically distinct audio graphs, so ducking the music bus never touches the gain of the effect oscillators | ✅ PASS |
+| f | Is there a race where `duck()` could be called before `musicBus` exists (e.g. before `startMusic()` runs)? Is it safely guarded? | `duck()` `:172` (`if (!musicBus) return;`); additionally, `duck()` is only reachable via `safePlay()`, which requires `unlocked === true` (`:181`) — and `unlocked` only becomes `true` inside `unlock()`, which calls `startMusic()` synchronously right after (`:145`), with no `await` between the two — no concurrent task is possible between them in single-threaded JS. The guard at `:172` covers the case defensively regardless | ✅ PASS (guarded) |
 
 **Result**: 6/6 code-path checks PASS.
 
@@ -44,20 +44,20 @@ No formal `tasks.md` exists for this feature (Medium-scope, inline Execute per t
 
 | Edge case | Evidence | Result |
 | --------- | -------- | ------ |
-| Música tocando, erro logo após acerto (chime + oops muito próximos) → ambos audíveis, sem um cortar o outro | `chime()` e `oops()` são osciladores independentes, cada um com seu próprio `GainNode` conectado direto a `ctx.destination` (`:165-166`, `:248`) — sinais somam aditivamente, nenhum mecanismo de cancelamento entre eles; o único efeito colateral compartilhado é `duck()` no `musicBus` (não nos próprios efeitos), e um segundo `duck()` apenas reagenda a rampa (item MUS-03.1 acima) | ✅ PASS |
-| Jingle de vitória (~2.3s) → duck permanece aplicado durante toda a duração, não só no ataque inicial | `victoryTune` usa `duckDuration=2.5` (`:234`); duração audível do jingle: última nota em `t=1.3, dur=0.9` → termina ~2.2s (`:229-233`), dentro da janela de 2.5s; `duck(2.5)` mantém a rampa de retorno à base só concluindo em `t0+2.5` (`:177`) — o volume permanece abaixo da base durante toda a janela de 2.5s, cobrindo integralmente o jingle de ~2.2-2.3s | ✅ PASS |
-| `AudioContext` falha ao iniciar/destravar → nem música nem efeitos tocam, nenhum erro no console | `unlock()` `:146-148`: catch silencioso, `unlocked = false` sem `console.*`; como `unlocked` nunca vira `true`, `startMusic()` nunca roda (`:145`) e `safePlay()` retorna cedo em toda chamada de efeito (`:181`) — nem música nem efeitos tocam, nenhum log emitido | ✅ PASS |
+| Music playing, miss right after a hit (chime + oops very close together) → both audible, without one cutting off the other | `chime()` and `oops()` are independent oscillators, each with its own `GainNode` connected directly to `ctx.destination` (`:165-166`, `:248`) — signals sum additively, no cancellation mechanism between them; the only shared side effect is `duck()` on `musicBus` (not on the effects themselves), and a second `duck()` merely reschedules the ramp (item MUS-03.1 above) | ✅ PASS |
+| Victory jingle (~2.3s) → duck stays applied for the entire duration, not just the initial attack | `victoryTune` uses `duckDuration=2.5` (`:234`); jingle's audible duration: last note at `t=1.3, dur=0.9` → ends ~2.2s (`:229-233`), within the 2.5s window; `duck(2.5)` keeps the return-to-base ramp only completing at `t0+2.5` (`:177`) — the volume stays below base for the entire 2.5s window, fully covering the ~2.2-2.3s jingle | ✅ PASS |
+| `AudioContext` fails to start/unlock → neither music nor effects play, no error in the console | `unlock()` `:146-148`: silent catch, `unlocked = false` with no `console.*`; since `unlocked` never becomes `true`, `startMusic()` never runs (`:145`) and `safePlay()` returns early on every effect call (`:181`) — neither music nor effects play, no log emitted | ✅ PASS |
 
 ---
 
 ## GUARD-03/GUARD-09 Amendment Consistency
 
-`.specs/features/hora-de-guardar/spec.md` (commit `0a1e259`) foi checado contra `musica-e-sons/spec.md` e contra o código:
+`.specs/features/hora-de-guardar/spec.md` (commit `0a1e259`) was checked against `musica-e-sons/spec.md` and against the code:
 
-- GUARD-03 item 3 (caixa errada) amendado para "sem som punitivo tradicional (emendado por MUS-04...)" — consistente com a implementação: `oops()` é um "boop" curto (triangle, glide descendente, 0.35s), não um buzzer, disparado em `rejected()` (`:390`). ✅ Consistente.
-- GUARD-03 item 4 (fora de caixa) amendado para "mesmo toque bem-humorado de GUARD-03.3" — a implementação confirma que é literalmente a mesma função `oops()` reusada em `settle()` (`:396`), sem som diferente. ✅ Consistente com o comportamento.
-- GUARD-09 ganhou um item 4 novo: "áudio destravado → também inicia música de fundo, sempre mais baixa que os efeitos (MUS-01/02/03)" — consistente com MUS-01/02 na spec nova e com a implementação (`startMusic()` a partir de `unlock()`, `MUSIC_BASE_GAIN` menor que os peaks de efeito). ✅ Consistente.
-- **Nit não bloqueante**: o texto amendado de GUARD-03 item 4 referencia "GUARD-03.3" — esse sub-ID não existe na tabela de Requirement Traceability de `hora-de-guardar/spec.md` (que lista apenas `GUARD-03` monolítico cobrindo os itens 3 e 4 originais, convenção pré-existente antes desta feature). É uma notação ad-hoc do autor para desambiguar "item 3 de GUARD-03" vs. "item 4 de GUARD-03" dentro do mesmo ID formal — não é uma contradição funcional (o comportamento é claro e correto no código), mas é uma referência cruzada que não resolve para nenhum ID formalmente definido em nenhuma das duas specs. Recomendação: usar "item 3 desta lista" ou formalizar sub-IDs (GUARD-03.1..03.4) na tabela de traceability caso o padrão se repita.
+- GUARD-03 item 3 (wrong box) amended to "no traditional punitive sound (amended by MUS-04...)" — consistent with the implementation: `oops()` is a short "boop" (triangle, descending glide, 0.35s), not a buzzer, triggered in `rejected()` (`:390`). ✅ Consistent.
+- GUARD-03 item 4 (outside a box) amended to "same good-humored touch as GUARD-03.3" — the implementation confirms it is literally the same `oops()` function reused in `settle()` (`:396`), with no different sound. ✅ Consistent with the behavior.
+- GUARD-09 gained a new item 4: "audio unlocked → also starts background music, always quieter than the effects (MUS-01/02/03)" — consistent with MUS-01/02 in the new spec and with the implementation (`startMusic()` from `unlock()`, `MUSIC_BASE_GAIN` lower than the effect peaks). ✅ Consistent.
+- **Non-blocking nit**: the amended text of GUARD-03 item 4 references "GUARD-03.3" — this sub-ID does not exist in the Requirement Traceability table of `hora-de-guardar/spec.md` (which lists only the monolithic `GUARD-03` covering the original items 3 and 4, a pre-existing convention before this feature). It is an ad-hoc notation by the author to disambiguate "item 3 of GUARD-03" vs. "item 4 of GUARD-03" within the same formal ID — not a functional contradiction (the behavior is clear and correct in the code), but it is a cross-reference that doesn't resolve to any formally defined ID in either spec. Recommendation: use "item 3 of this list" or formalize sub-IDs (GUARD-03.1..03.4) in the traceability table if this pattern recurs.
 
 ---
 
@@ -65,30 +65,30 @@ No formal `tasks.md` exists for this feature (Medium-scope, inline Execute per t
 
 | Principle | Status |
 | --------- | ------ |
-| Minimum code (sem features além do pedido) | ✅ — só música/duck/oops, sem botão de mudo (Out of Scope respeitado) |
-| Surgical changes (commit 1 toca só `src/feedback.js`; commit 2 toca só os 3 arquivos de spec/doc) | ✅ — confirmado via `git show --stat` em ambos os commits |
-| No scope creep | ✅ — nenhuma mudança em `main.js`/`game.js`/outros módulos; `unlockAudio`/`update` já existiam como pontos de integração, reusados sem alterar assinatura |
-| Matches existing patterns (mini-tween/no-deps philosophy, comentários em português só onde o "porquê" não é óbvio) | ✅ — `noteTo()` é uma generalização limpa do `note()` pré-existente (extrai `destination` como parâmetro em vez de duplicar lógica); comentários novos seguem o mesmo estilo de citar o requirement ID entre parênteses (`// (MUS-01)` etc.), igual ao padrão já usado para GUARD-xx |
-| `SPEC_DEVIATION` documentado quando aplicável | ✅ — o cabeçalho do arquivo (`:1-8`) já tinha um `SPEC_DEVIATION` para osciladores WebAudio em vez de arquivos de áudio; a nova feature é coerente com essa decisão prévia (reafirmada em MUS out-of-scope: "sintetizar via WebAudio... AD-005, lição L-003") e não introduz nova divergência |
-| Documentação de validação da própria spec.md é factualmente precisa | ⚠️ Ver gap #1 abaixo |
+| Minimum code (no features beyond what was requested) | ✅ — only music/duck/oops, no mute button (Out of Scope respected) |
+| Surgical changes (commit 1 touches only `src/feedback.js`; commit 2 touches only the 3 spec/doc files) | ✅ — confirmed via `git show --stat` on both commits |
+| No scope creep | ✅ — no changes to `main.js`/`game.js`/other modules; `unlockAudio`/`update` already existed as integration points, reused without changing their signature |
+| Matches existing patterns (mini-tween/no-deps philosophy, comments in Portuguese only where the "why" isn't obvious) | ✅ — `noteTo()` is a clean generalization of the pre-existing `note()` (extracts `destination` as a parameter instead of duplicating logic); new comments follow the same style of citing the requirement ID in parentheses (`// (MUS-01)` etc.), same as the existing pattern for GUARD-xx |
+| `SPEC_DEVIATION` documented where applicable | ✅ — the file header (`:1-8`) already had a `SPEC_DEVIATION` for WebAudio oscillators instead of audio files; the new feature is consistent with that prior decision (reaffirmed in the MUS Out of Scope: "synthesize via WebAudio... AD-005, lesson L-003") and introduces no new deviation |
+| The spec.md's own validation documentation is factually accurate | ⚠️ See gap #1 below |
 
-**Gaps encontrados (não bloqueantes, ranqueados)**:
+**Gaps found (non-blocking, ranked)**:
 
-1. **[Baixa severidade] Contagem de testes citada na spec está incorreta para o momento do commit.** `.specs/features/musica-e-sons/spec.md` (linha da seção "Implementação") afirma: *"Validação é: suite Vitest 54/54 sem regressão..."*. Reproduzindo o commit exato `0a1e259` em worktree isolado, a suite real naquele ponto da história é **50/50** (3 arquivos de teste), não 54. O número 54 só existe no HEAD atual (`b51f634`), que inclui 4 testes novos de `src/bluey.test.js` pertencentes à feature *não relacionada* `camera-gestos`, commitada depois. Hipótese provável: o autor rodou `npm test` numa working tree que já continha as mudanças não commitadas da outra feature ao escrever a spec, em vez de isolar a contagem ao escopo desta feature. Não afeta a corretude do código (confirmado por este Verifier: 50/50 sem regressão no commit isolado, ver Gate Check), mas é uma imprecisão no artefato de documentação persistido. Recomendação: corrigir a spec.md para "50/50" ou generalizar para "suite Vitest completa, sem regressão" sem número fixo.
-2. **[Nit / cosmético]** Ver "GUARD-03.3" acima — referência cruzada a um sub-ID inexistente na tabela de traceability.
+1. **[Low severity] The test count cited in the spec is incorrect for the commit's point in time.** `.specs/features/musica-e-sons/spec.md` (in the "Implementation" section) states: *"Validation is: Vitest suite 54/54 with no regression..."*. Reproducing the exact commit `0a1e259` in an isolated worktree, the actual suite at that point in history is **50/50** (3 test files), not 54. The number 54 only exists at the current HEAD (`b51f634`), which includes 4 new tests from `src/bluey.test.js` belonging to the *unrelated* `camera-gestos` feature, committed later. Likely hypothesis: the author ran `npm test` in a working tree that already contained the other feature's uncommitted changes while writing the spec, instead of isolating the count to this feature's scope. It does not affect the correctness of the code (confirmed by this Verifier: 50/50 with no regression on the isolated commit, see Gate Check), but it is an inaccuracy in the persisted documentation artifact. Recommendation: correct the spec.md to "50/50" or generalize to "full Vitest suite, no regression" without a fixed number.
+2. **[Nit / cosmetic]** See "GUARD-03.3" above — a cross-reference to a sub-ID that doesn't exist in the traceability table.
 
-Nenhum gap funcional encontrado no código de `src/feedback.js`.
+No functional gaps found in the `src/feedback.js` code.
 
 ---
 
 ## Gate Check
 
-- **Gate commands**: `npm test` (Vitest) e `npm run build` — executados localmente por este Verifier em 2026-07-08, em três estados distintos via `git worktree`:
-  1. Commit pai `f20ae1a` (antes da feature): `npm test` → 3 arquivos, **50 passed / 50 total**, exit 0. `npm run build` → exit 0, limpo (aviso de chunk >500kB, pré-existente/informativo).
-  2. Commit da feature `0a1e259` (feature completa, isolada): `npm test` → 3 arquivos, **50 passed / 50 total**, exit 0. `npm run build` → exit 0, limpo.
-  3. HEAD atual (`b51f634`, inclui trabalho não relacionado de `camera-gestos` em cima): `npm test` → 4 arquivos, **54 passed / 54 total**, exit 0. `npm run build` → exit 0, limpo.
-- **Delta da feature `musica-e-sons` isolada**: 50 → 50 (0 testes adicionados, 0 removidos, 0 quebrados) — esperado e correto, dado que `feedback.js` não tem testes unitários por design (WebAudio não testável em jsdom, mesma exceção AD-004 de `chime`/`fanfare`/`victoryTune`, nenhum dos quais tinha teste antes desta feature também).
-- **Regressão**: nenhuma — os 50 testes pré-existentes (`game.test.js`, `hud.test.js`, `transitions.test.js`) passam intactos em todos os três pontos.
+- **Gate commands**: `npm test` (Vitest) and `npm run build` — run locally by this Verifier on 2026-07-08, across three distinct states via `git worktree`:
+  1. Parent commit `f20ae1a` (before the feature): `npm test` → 3 files, **50 passed / 50 total**, exit 0. `npm run build` → exit 0, clean (chunk >500kB warning, pre-existing/informational).
+  2. Feature commit `0a1e259` (feature complete, isolated): `npm test` → 3 files, **50 passed / 50 total**, exit 0. `npm run build` → exit 0, clean.
+  3. Current HEAD (`b51f634`, includes unrelated `camera-gestos` work on top): `npm test` → 4 files, **54 passed / 54 total**, exit 0. `npm run build` → exit 0, clean.
+- **Isolated `musica-e-sons` feature delta**: 50 → 50 (0 tests added, 0 removed, 0 broken) — expected and correct, given that `feedback.js` has no unit tests by design (WebAudio not testable under jsdom, same AD-004 exception as `chime`/`fanfare`/`victoryTune`, none of which had a test before this feature either).
+- **Regression**: none — the 50 pre-existing tests (`game.test.js`, `hud.test.js`, `transitions.test.js`) pass intact at all three points.
 
 ---
 
@@ -103,7 +103,7 @@ Nenhum gap funcional encontrado no código de `src/feedback.js`.
 | MUS-04 | Implemented (spec) | ✅ Verified |
 | MUS-04.1 | Implemented (spec) | ✅ Verified |
 
-(Este Verifier não editou `spec.md`; a spec já lista "Implemented" para as 6 linhas — confirmado por evidência independente.)
+(This Verifier did not edit `spec.md`; the spec already lists "Implemented" for all 6 rows — confirmed by independent evidence.)
 
 ---
 
@@ -111,15 +111,15 @@ Nenhum gap funcional encontrado no código de `src/feedback.js`.
 
 **Overall**: ✅ PASS
 
-**Spec-anchored check**: 6/6 ACs (MUS-01..MUS-04.1) com evidência file:line direta e comportamento confirmado, não apenas presença de código relacionado
+**Spec-anchored check**: 6/6 ACs (MUS-01..MUS-04.1) with direct file:line evidence and confirmed behavior, not just the presence of related code
 **Manual code-path trace**: 6/6 checks PASS (a–f)
-**Edge cases**: 3/3 cobertos (efeitos simultâneos, duck durante todo o jingle de vitória, falha silenciosa de AudioContext)
-**Gate**: `npm test` 50/50 no commit isolado da feature (54/54 no HEAD atual, incluindo trabalho não relacionado), exit 0; `npm run build` exit 0 em todos os três pontos testados
+**Edge cases**: 3/3 covered (simultaneous effects, duck throughout the entire victory jingle, silent AudioContext failure)
+**Gate**: `npm test` 50/50 on the feature's isolated commit (54/54 at current HEAD, including unrelated work), exit 0; `npm run build` exit 0 at all three points tested
 
-**What works**: música de fundo sintetizada em loop contínuo com lookahead scheduling robusto a frames irregulares; duck automático correto (cancela rampas anteriores sem estalo) para os 4 efeitos, incluindo cobertura completa do jingle de vitória de ~2.3s; som de erro ("boop" bem-humorado, não-punitivo) reutilizado identicamente nos dois casos (caixa errada e fora de caixa); grafo de áudio separa fisicamente bus de música e sfx, então duck nunca afeta os próprios efeitos; zero regressão nos 50 testes pré-existentes; build limpo.
+**What works**: synthesized background music looping continuously with lookahead scheduling robust to irregular frames; correct automatic duck (cancels previous ramps without a click) for the 4 effects, including full coverage of the ~2.3s victory jingle; the miss sound (good-humored, non-punitive "boop") reused identically in both cases (wrong box and outside a box); the audio graph physically separates the music and sfx buses, so ducking never affects the effects themselves; zero regression in the 50 pre-existing tests; clean build.
 
-**Issues found (não bloqueantes)**:
-1. ⚠️ Baixa severidade — `spec.md` cita "suite Vitest 54/54" na seção de validação, mas a contagem real no commit da feature é 50/50 (o 54 só existe após trabalho não relacionado posterior). Sugestão: corrigir o número ou remover a cifra fixa.
-2. 📌 Nit cosmético — referência cruzada "GUARD-03.3" em `hora-de-guardar/spec.md` não corresponde a nenhum sub-ID formal na tabela de traceability daquela spec.
+**Issues found (non-blocking)**:
+1. ⚠️ Low severity — `spec.md` cites "Vitest suite 54/54" in the validation section, but the actual count on the feature's commit is 50/50 (the 54 only exists after later unrelated work). Suggestion: correct the number or remove the fixed figure.
+2. 📌 Cosmetic nit — the "GUARD-03.3" cross-reference in `hora-de-guardar/spec.md` doesn't correspond to any formal sub-ID in that spec's traceability table.
 
-**Next steps**: corrigir a contagem de testes citada em `musica-e-sons/spec.md`; opcionalmente formalizar sub-IDs de GUARD-03 se a spec de `hora-de-guardar` for revisada novamente.
+**Next steps**: correct the test count cited in `musica-e-sons/spec.md`; optionally formalize GUARD-03 sub-IDs if the `hora-de-guardar` spec is revised again.

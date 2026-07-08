@@ -1,111 +1,111 @@
 # "Hora de Guardar!" Design
 
 **Spec**: `.specs/features/hora-de-guardar/spec.md`
-**Status**: Draft (arquitetura aprovada pelo usuário no brainstorming; formalização aguardando OK)
+**Status**: Draft (architecture approved by the user during brainstorming; formalization awaiting OK)
 
 ---
 
 ## Architecture Overview
 
-Página estática Vite + Three.js (JS puro, AD-001). Um único diorama com câmera fixa (AD-002).
-A lógica de jogo é pura e isolada do renderer (AD-004); os módulos de cena consomem eventos
-da lógica e produzem visual/som.
+Static Vite + Three.js page (plain JS, AD-001). A single diorama with a fixed camera (AD-002).
+The game logic is pure and isolated from the renderer (AD-004); the scene modules consume
+events from the logic and produce visuals/sound.
 
 ```mermaid
 graph TD
-    P[Pointer Events<br>touch + mouse] --> D[drag.js<br>raycast + plano do chão]
-    D -->|"soltou em (x,z)"| G[game.js<br>lógica pura: rodadas, matching, progressão]
-    G -->|stored / rejected / dropped| F[feedback.js<br>animações, confete, Bluey, sons]
-    G -->|estado da rodada| S[scene.js<br>sala, câmera fixa, quadros]
-    T[toys.js<br>fábrica low-poly] --> S
-    B[boxes.js<br>cesta, baú, caminha] --> S
-    G <-->|rodada atual| LS[(localStorage)]
+    P[Pointer Events<br>touch + mouse] --> D[drag.js<br>raycast + floor plane]
+    D -->|"dropped at (x,z)"| G[game.js<br>pure logic: rounds, matching, progression]
+    G -->|stored / rejected / dropped| F[feedback.js<br>animations, confetti, Bluey, sounds]
+    G -->|round state| S[scene.js<br>room, fixed camera, frames]
+    T[toys.js<br>low-poly factory] --> S
+    B[boxes.js<br>basket, chest, bed] --> S
+    G <-->|current round| LS[(localStorage)]
     W[window.__game<br>test hook] -.-> G
     W -.-> S
 ```
 
-**Pesquisa (Knowledge Chain / Context7):** confirmado na doc atual do Three.js que
-`DragControls` arrasta em profundidade livre — reforça AD-003 (arrasto próprio via
-`Raycaster.setFromCamera` contra um plano invisível na altura do chão). Picking por
-raycast e Pointer Events cobrem touch+mouse com um só código.
+**Research (Knowledge Chain / Context7):** confirmed in the current Three.js docs that
+`DragControls` drags with free depth — this reinforces AD-003 (custom dragging via
+`Raycaster.setFromCamera` against an invisible plane at floor height). Raycast picking
+and Pointer Events cover touch+mouse with a single codebase.
 
 ---
 
 ## Code Reuse Analysis
 
-Projeto greenfield — não há código existente. Reuso se dá por biblioteca e padrão:
+Greenfield project — there is no existing code. Reuse comes from libraries and patterns:
 
-| Componente | Origem | Como usar |
+| Component | Source | How it's used |
 |---|---|---|
-| `THREE.Raycaster`, `PerspectiveCamera`, primitivas | three (npm) | Base de cena, picking e modelos low-poly |
-| Padrão de picking/drag por plano | Exemplos oficiais Three.js (via Context7) | Adaptar para Pointer Events + clamp no chão |
-| Sons livres | kenney.nl / freesound | Arquivos em `assets/sounds/` |
-| Key art / personagens | Media hub oficial (docs/references.md) | `assets/bluey/` — uso privado (AD-005) |
+| `THREE.Raycaster`, `PerspectiveCamera`, primitives | three (npm) | Scene base, picking and low-poly models |
+| Plane-based picking/drag pattern | Official Three.js examples (via Context7) | Adapted for Pointer Events + floor clamp |
+| Free sounds | kenney.nl / freesound | Files in `assets/sounds/` |
+| Key art / characters | Official media hub (docs/references.md) | `assets/bluey/` — private use only (AD-005) |
 
 ### Integration Points
 
-| Sistema | Método |
+| System | Method |
 |---|---|
-| `localStorage` | Chave única `hora-de-guardar:round` (número); acesso via wrapper tolerante a exceção |
-| Playwright MCP (E2E) | Hook `window.__game` exposto pelo jogo para E2E guiado por prompt (ver Testing) |
+| `localStorage` | Single key `hora-de-guardar:round` (number); accessed via an exception-tolerant wrapper |
+| Playwright MCP (E2E) | `window.__game` hook exposed by the game for prompt-guided E2E (see Testing) |
 
 ---
 
 ## Components
 
-### game.js — lógica pura (sem Three.js, sem DOM)
+### game.js — pure logic (no Three.js, no DOM)
 
-- **Purpose**: Estado e regras: geração de rodada, matching por tipo, progressão, persistência.
+- **Purpose**: State and rules: round generation, matching by type, progression, persistence.
 - **Location**: `src/game.js`
 - **Interfaces**:
-  - `createGame(storage): Game` — `storage` injetável (localStorage ou stub nos testes)
-  - `game.startRound(): RoundState` — gera brinquedos da rodada (6/9/12, tipos equilibrados, cores/posições via RNG semeável)
-  - `game.tryStore(toyId, boxType): 'stored' | 'rejected'` — regra de matching
+  - `createGame(storage): Game` — `storage` injectable (localStorage or a stub in tests)
+  - `game.startRound(): RoundState` — generates the round's toys (6/9/12, balanced types, seedable-RNG colors/positions)
+  - `game.tryStore(toyId, boxType): 'stored' | 'rejected'` — matching rule
   - `game.isRoundComplete(): boolean`
-  - `game.advanceRound(): number` — incrementa e persiste
+  - `game.advanceRound(): number` — increments and persists
   - `game.currentRound: number`
-- **Dependencies**: nenhuma
+- **Dependencies**: none
 - **Reuses**: —
 
-### scene.js — palco
+### scene.js — the stage
 
-- **Purpose**: Renderer, câmera fixa, luzes, sala (chão+parede), quadros com key art, resize.
+- **Purpose**: Renderer, fixed camera, lights, room (floor+wall), frames with key art, resize.
 - **Location**: `src/scene.js`
 - **Interfaces**: `createScene(canvas): { scene, camera, renderer, floorY, onResize() }`
 - **Dependencies**: three
-- **Reuses**: padrão de resize responsivo dos exemplos oficiais
+- **Reuses**: responsive resize pattern from the official examples
 
-### toys.js — fábrica de brinquedos
+### toys.js — toy factory
 
-- **Purpose**: Malhas low-poly por tipo (`ball`, `block`, `plush`) com variação de cor; sem assets externos.
+- **Purpose**: Low-poly meshes per type (`ball`, `block`, `plush`) with color variation; no external assets.
 - **Location**: `src/toys.js`
-- **Interfaces**: `createToyMesh(type, color): THREE.Group` (com `userData.toyId/type`)
+- **Interfaces**: `createToyMesh(type, color): THREE.Group` (with `userData.toyId/type`)
 - **Dependencies**: three
 
-### boxes.js — caixas
+### boxes.js — boxes
 
-- **Purpose**: Cesta (bolas), baú (blocos), caminha (bichinhos), com placas de personagem e raio de acerto generoso.
+- **Purpose**: Basket (balls), chest (blocks), bed (plush toys), with character plaques and a generous hit radius.
 - **Location**: `src/boxes.js`
 - **Interfaces**: `createBoxes(): Box[]` — `Box = { mesh, type, snapRadius, position }`
-- **Dependencies**: three; texturas de `assets/bluey/` com fallback de cor sólida
+- **Dependencies**: three; textures from `assets/bluey/` with solid-color fallback
 
-### drag.js — entrada
+### drag.js — input
 
-- **Purpose**: Pointer Events unificados; raycast pega brinquedo; arrasto preso ao plano do chão com clamp; 1 ponteiro por vez.
+- **Purpose**: Unified Pointer Events; raycast picks up the toy; drag constrained to the floor plane with clamping; 1 pointer at a time.
 - **Location**: `src/drag.js`
 - **Interfaces**: `createDrag({ camera, canvas, toys, floorY, onDrop(toyId, positionXZ) })`
 - **Dependencies**: three (Raycaster, Plane)
 
-### feedback.js — resposta sensorial
+### feedback.js — sensory response
 
-- **Purpose**: Tweens (sugar para caixa, quicar de volta, balançar caixa), confete de partículas, aparição da Bluey, sons.
+- **Purpose**: Tweens (fly to box, bounce back, shake box), particle confetti, Bluey's appearance, sounds.
 - **Location**: `src/feedback.js`
 - **Interfaces**: `feedback.stored(toy, box)`, `feedback.rejected(toy, box)`, `feedback.roundComplete()`, `feedback.unlockAudio()`
-- **Dependencies**: three, WebAudio; assets de som/imagem com fallback
+- **Dependencies**: three, WebAudio; sound/image assets with fallback
 
-### main.js — composição
+### main.js — composition
 
-- **Purpose**: Liga tudo: cria cena/jogo/drag/feedback, loop de render, tela inicial (botão play → destrava áudio), expõe `window.__game` (hook de teste).
+- **Purpose**: Wires everything together: creates scene/game/drag/feedback, render loop, start screen (play button → unlocks audio), exposes `window.__game` (test hook).
 - **Location**: `src/main.js`
 
 ---
@@ -121,16 +121,16 @@ Projeto greenfield — não há código existente. Reuso se dá por biblioteca e
   // toy.state: 'idle' | 'dragging' | 'stored'
   phase: 'playing' // 'playing' | 'celebrating'
 }
-// Persistência: localStorage['hora-de-guardar:round'] = '2'
+// Persistence: localStorage['hora-de-guardar:round'] = '2'
 ```
 
-**Test hook (`window.__game`)** — somente leitura + determinismo, para E2E guiado por prompt:
+**Test hook (`window.__game`)** — read-only + determinism, for prompt-guided E2E:
 
 ```js
 window.__game = {
-  state(),                 // RoundState atual (cópia)
-  screenPos(objectId),     // posição {x,y} em pixels de brinquedo/caixa (projeção da câmera)
-  seed(n),                 // torna a próxima rodada determinística
+  state(),                 // current RoundState (copy)
+  screenPos(objectId),     // pixel {x,y} position of a toy/box (camera projection)
+  seed(n),                 // makes the next round deterministic
 }
 ```
 
@@ -138,36 +138,36 @@ window.__game = {
 
 ## Error Handling Strategy
 
-| Cenário | Tratamento | Impacto para a criança |
+| Scenario | Handling | Impact on the child |
 |---|---|---|
-| Imagem oficial falha ao carregar | `TextureLoader` com `onError` → material de cor sólida; `console.warn` | Painel colorido no lugar do quadro; jogo normal |
-| Áudio não destrava | try/catch no `AudioContext.resume()`; flag `muted` | Jogo em silêncio |
-| `localStorage` lança exceção | wrapper try/catch → rodada 1, sem persistir | Recomeça da 1 ao reabrir |
-| Ponteiro sai da janela arrastando | `pointercancel`/`pointerleave` → solta como "fora de caixa" | Brinquedo assenta no chão |
-| WebGL indisponível | detecção na carga → mensagem estática simples | Adulto entende; criança não chega a ver tela quebrada |
+| Official image fails to load | `TextureLoader` with `onError` → solid-color material; `console.warn` | Colored panel instead of the frame; normal game |
+| Audio doesn't unlock | try/catch around `AudioContext.resume()`; `muted` flag | Game in silence |
+| `localStorage` throws an exception | try/catch wrapper → round 1, no persistence | Restarts at 1 on reopen |
+| Pointer leaves the window while dragging | `pointercancel`/`pointerleave` → released as "outside a box" | Toy settles on the floor |
+| WebGL unavailable | detected on load → simple static message | Adult understands; child never sees a broken screen |
 
 ---
 
 ## Testing Strategy
 
-Dois níveis (AD-004 + AD-006):
+Two levels (AD-004 + AD-006):
 
-1. **Unit (Vitest)** — `src/game.js` 1:1 com ACs de GUARD-02/03/04/05/06 (matching, geração de rodada, progressão, persistência com storage stub, máquina de estados).
-2. **E2E guiado por prompt via Playwright MCP** — cenários descritos em Markdown em `e2e/scenarios/*.md`, executados pelo agente com as tools do Playwright MCP (navegar, snapshot, disparar Pointer Events via `browser_evaluate` usando `window.__game.screenPos()` para coordenadas, screenshots como evidência). Cobrem GUARD-01/02/03/05/07/08/09 ponta-a-ponta no navegador real, incluindo simulação de touch. Rodam como gate Full das fases de integração e na verificação final (Verifier).
+1. **Unit (Vitest)** — `src/game.js` 1:1 with the ACs of GUARD-02/03/04/05/06 (matching, round generation, progression, persistence with a storage stub, state machine).
+2. **Prompt-guided E2E via Playwright MCP** — scenarios described in Markdown in `e2e/scenarios/*.md`, executed by the agent using the Playwright MCP tools (navigate, snapshot, trigger Pointer Events via `browser_evaluate` using `window.__game.screenPos()` for coordinates, screenshots as evidence). Cover GUARD-01/02/03/05/07/08/09 end-to-end in a real browser, including touch simulation. Run as the Full gate for integration phases and in the final verification (Verifier).
 
-O hook `window.__game` existe para tornar os cenários determinísticos (seed) e localizáveis
-(coordenadas de tela dos objetos 3D — o canvas é opaco para snapshot de acessibilidade).
+The `window.__game` hook exists to make the scenarios deterministic (seed) and locatable
+(screen coordinates of the 3D objects — the canvas is opaque to accessibility snapshots).
 
 ---
 
 ## Risks & Concerns
 
-| Concern | Localização | Impacto | Mitigação |
+| Concern | Location | Impact | Mitigation |
 |---|---|---|---|
-| IP da Bluey (assets oficiais) | `assets/bluey/` | Risco jurídico se publicado | AD-005: uso privado; fallbacks fazem o jogo funcionar sem os assets |
-| Canvas WebGL é invisível para asserts de DOM | E2E | E2E frágil se depender de pixels | Hook `window.__game` + asserts sobre estado; screenshot só como evidência visual |
-| Performance em tablet modesto | cena/partículas | Travadas estragam a experiência | Low-poly, sem sombras dinâmicas caras, confete com pool limitado de partículas; validar cedo no tablet real |
-| Texturas grandes de key art | `assets/bluey/` | Carga lenta em rede local | Redimensionar assets para ≤1024px no tratamento |
+| Bluey IP (official assets) | `assets/bluey/` | Legal risk if published | AD-005: private use; fallbacks make the game work without the assets |
+| WebGL canvas is invisible to DOM asserts | E2E | Fragile E2E if it depends on pixels | `window.__game` hook + state asserts; screenshot only as visual evidence |
+| Performance on a modest tablet | scene/particles | Stutter ruins the experience | Low-poly, no expensive dynamic shadows, confetti with a limited particle pool; validate early on a real tablet |
+| Large key-art textures | `assets/bluey/` | Slow load on a local network | Resize assets to ≤1024px during processing |
 
 ---
 
@@ -175,9 +175,9 @@ O hook `window.__game` existe para tornar os cenários determinísticos (seed) e
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| E2E | Prompt-guided via Playwright MCP (cenários .md), não specs `@playwright/test` | Pedido do usuário; agente executa e julga com contexto; sem manter suite de código E2E |
-| Determinismo p/ testes | RNG semeável em `game.js` + `seed()` no hook | E2E e unit reproduzíveis |
-| Animações | Tween próprio minimalista (lerp + easing) em `feedback.js` | Evita dependência (GSAP etc.) para meia dúzia de animações |
-| Áudio | WebAudio API direto (sem Howler) | Poucos sons, controle de unlock explícito |
+| E2E | Prompt-guided via Playwright MCP (.md scenarios), not `@playwright/test` specs | User's request; the agent runs and judges with context; no E2E code suite to maintain |
+| Determinism for tests | Seedable RNG in `game.js` + `seed()` on the hook | Reproducible E2E and unit tests |
+| Animations | Minimal custom tween (lerp + easing) in `feedback.js` | Avoids a dependency (GSAP etc.) for half a dozen animations |
+| Audio | WebAudio API directly (no Howler) | Few sounds, explicit unlock control |
 
-> Registrado em `.specs/STATE.md`: AD-006 (E2E guiado por prompt via Playwright MCP).
+> Recorded in `.specs/STATE.md`: AD-006 (prompt-guided E2E via Playwright MCP).

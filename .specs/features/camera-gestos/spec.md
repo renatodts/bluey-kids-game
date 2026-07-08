@@ -2,23 +2,23 @@
 
 ## Problem Statement
 
-Os controles de câmera atuais (v1 ad-hoc, não commitados) foram escritos à mão: sem inércia/damping, velocidade de rotação crua (2π por altura de tela), math de dois dedos ruidosa (pan por ponteiro + twist instável). O resultado é uma câmera "dura" e imprecisa, especialmente no celular. Pesquisa (Context7, `/yomotsu/camera-controls`) confirma que o padrão de mercado para jogos/visualizadores 3D mobile é: ações mapeadas por quantidade de dedos, damping suave durante e após o gesto, e limites declarativos — tudo resolvido pela biblioteca `camera-controls`.
+The current camera controls (ad-hoc v1, not committed) were hand-written: no inertia/damping, raw rotation speed (2π per screen height), noisy two-finger math (pan via pointer + unstable twist). The result is a "stiff" and imprecise camera, especially on mobile. Research (Context7, `/yomotsu/camera-controls`) confirms that the market standard for mobile 3D games/viewers is: actions mapped by finger count, smooth damping during and after the gesture, and declarative limits — all solved by the `camera-controls` library.
 
 ## Goals
 
-- [ ] Câmera com sensação de app de mapa/jogo mobile: suave, previsível, sem tremores.
-- [ ] Gestos mapeados por quantidade de dedos (1 = orbitar, 2 = pinch-zoom + pan, 3 = pan).
-- [ ] Versão web completa para mouse (esquerdo orbita, direito pan, roda zoom no cursor).
-- [ ] Zero regressão no arrasto de brinquedos (prioridade absoluta do gameplay).
+- [ ] Camera that feels like a mobile map/game app: smooth, predictable, no jitter.
+- [ ] Gestures mapped by finger count (1 = orbit, 2 = pinch-zoom + pan, 3 = pan).
+- [ ] Full web version for mouse (left orbits, right pans, wheel zooms at the cursor).
+- [ ] Zero regression in toy dragging (absolute gameplay priority).
 
 ## Out of Scope
 
 | Feature | Reason |
 | ------- | ------ |
-| Twist (giro com 2 dedos) | Removido de propósito: fonte da imprecisão da v1; padrão de jogos 3D mobile é 1 dedo orbita / 2 dedos zoom+pan |
-| Fullscreen / orientação / overlay retrato | Feature `mobile-camera` (parte fullscreen segue pendente) |
-| Câmera automática (follow/ênfase/passeio) | Parte "câmera viva" de `mobile-camera` superseded — usuário optou por controle manual gestual |
-| Inércia longa (fling estilo lista) | smoothTime curto basta; fling longo desorienta criança de 4 anos |
+| Twist (two-finger rotation) | Removed on purpose: source of v1's imprecision; the mobile 3D game standard is 1-finger orbit / 2-finger zoom+pan |
+| Fullscreen / orientation / portrait overlay | Feature `mobile-camera` (the fullscreen part remains pending) |
+| Automatic camera (follow/emphasis/tour) | The "living camera" part of `mobile-camera` is superseded — the user opted for manual gestural control |
+| Long inertia (list-style fling) | A short smoothTime is enough; a long fling would disorient a 4-year-old |
 
 ---
 
@@ -26,13 +26,13 @@ Os controles de câmera atuais (v1 ad-hoc, não commitados) foram escritos à m�
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 | --------------------- | -------------- | --------- | ---------- |
-| "quantidade de dados" no pedido | Interpretado como "quantidade de deDOS" (mapa de ações por nº de dedos) | Única leitura coerente com "gestos" + "versão web pra mouse" | n (logged) |
-| Reescrever na mão vs biblioteca | Usar `camera-controls` (yomotsu) — battle-tested, damping SmoothDamp, `touches.one/two/three`, `mouseButtons`, limites e `setBoundary` nativos | Cadeia de verificação: Context7 `/yomotsu/camera-controls` (reputação High, 234 snippets); reconstruir damping/gesto na mão é reincidir no erro da v1 | n (logged) |
-| Mapa de gestos | 1 dedo=orbita, 2 dedos=pinch-zoom+pan (`TOUCH_DOLLY_TRUCK`), 3 dedos=pan (`TOUCH_TRUCK`); mouse: esq=orbita, dir=pan (`TRUCK`), meio+roda=zoom (`dollyToCursor`) | Defaults da biblioteca ≈ padrão de mercado (Google Maps/model viewers) | n (logged) |
-| Tuning de suavidade | `draggingSmoothTime` ≈ 0.06 s (resposta direta com micro-suavização), `smoothTime` ≈ 0.25 s (assentamento pós-gesto) | Critério do agente; invariante: resposta perceptível imediata (mão da criança manda), sem fling longo | n (logged) |
-| Limites herdados da v1 | distância [3, 26], polar [0.12, π/2−0.06], alvo preso à sala via `setBoundary` (box da v1) | Valores já validados em jogo na v1 | y (código existente) |
-| Abertura (recuo do close na Bluey) | Mantida como lerp manual existente; ao terminar, controles sincronizam a pose (`setLookAt` sem transição) e habilitam | Comportamento já coberto pelos cenários e2e atualizados; não reintroduzir risco | n (logged) |
-| Trabalho ad-hoc não commitado | Commitar como baseline antes da reconstrução | Preserva história e deixa o diff da feature limpo/atômico | n (logged) |
+| "quantidade de dados" (amount of data) in the request | Interpreted as "quantidade de deDOS" (amount of fingers) (action map by number of fingers) | The only reading coherent with "gestures" + "web version for mouse" | n (logged) |
+| Hand-rewrite vs. library | Use `camera-controls` (yomotsu) — battle-tested, SmoothDamp damping, `touches.one/two/three`, `mouseButtons`, native limits and `setBoundary` | Verification chain: Context7 `/yomotsu/camera-controls` (High reputation, 234 snippets); rebuilding damping/gestures by hand would repeat v1's mistake | n (logged) |
+| Gesture map | 1 finger=orbit, 2 fingers=pinch-zoom+pan (`TOUCH_DOLLY_TRUCK`), 3 fingers=pan (`TOUCH_TRUCK`); mouse: left=orbit, right=pan (`TRUCK`), middle+wheel=zoom (`dollyToCursor`) | Library defaults ≈ market standard (Google Maps/model viewers) | n (logged) |
+| Smoothness tuning | `draggingSmoothTime` ≈ 0.06 s (direct response with micro-smoothing), `smoothTime` ≈ 0.25 s (post-gesture settling) | Agent's discretion; invariant: immediate perceptible response (the child's hand is in charge), no long fling | n (logged) |
+| Limits inherited from v1 | distance [3, 26], polar [0.12, π/2−0.06], target locked to the room via `setBoundary` (v1's box) | Values already validated in-game in v1 | y (existing code) |
+| Opening (close-up pull-back on Bluey) | Kept as the existing manual lerp; on finish, the controls sync the pose (`setLookAt` without transition) and enable | Behavior already covered by the updated e2e scenarios; do not reintroduce risk | n (logged) |
+| Uncommitted ad-hoc work | Commit as a baseline before the rebuild | Preserves history and keeps the feature's diff clean/atomic | n (logged) |
 
 **Open questions:** none — all resolved or logged above.
 
@@ -40,67 +40,67 @@ Os controles de câmera atuais (v1 ad-hoc, não commitados) foram escritos à m�
 
 ## User Stories
 
-### P1: Gestos touch por quantidade de dedos ⭐ MVP
+### P1: Touch gestures by finger count ⭐ MVP
 
-**User Story**: Como jogador no celular, quero controlar a câmera com os gestos que já conheço de outros apps 3D, para explorar a sala com naturalidade.
+**User Story**: As a player on mobile, I want to control the camera with gestures I already know from other 3D apps, so I can explore the room naturally.
 
 **Acceptance Criteria**:
 
-1. WHEN 1 dedo arrasta em área livre (toque que não começou num brinquedo) THEN a câmera SHALL orbitar ao redor do alvo, com suavização durante o gesto (sem saltos secos por evento).
-2. WHEN 2 dedos se afastam/aproximam (pinch) THEN a distância da câmera SHALL diminuir/aumentar; WHEN os 2 dedos transladam juntos THEN o alvo SHALL fazer pan — ambos no mesmo gesto contínuo.
-3. WHEN 3 dedos arrastam THEN a câmera SHALL fazer pan puro (sem zoom/rotação).
-4. WHEN o gesto termina THEN o movimento SHALL assentar suavemente (damping curto), parando por completo — sem deriva contínua.
-5. WHEN qualquer gesto atinge os limites THEN o sistema SHALL respeitá-los: distância ∈ [3, 26], ângulo polar nunca abaixo do chão (≤ π/2−0.06), alvo dentro do box da sala.
+1. WHEN 1 finger drags on free area (a touch that didn't start on a toy) THEN the camera SHALL orbit around the target, with smoothing during the gesture (no sharp jumps per event).
+2. WHEN 2 fingers move apart/together (pinch) THEN the camera distance SHALL decrease/increase; WHEN the 2 fingers translate together THEN the target SHALL pan — both within the same continuous gesture.
+3. WHEN 3 fingers drag THEN the camera SHALL pan purely (no zoom/rotation).
+4. WHEN the gesture ends THEN the movement SHALL settle smoothly (short damping), stopping completely — no continuous drift.
+5. WHEN any gesture reaches the limits THEN the system SHALL respect them: distance ∈ [3, 26], polar angle never below the floor (≤ π/2−0.06), target inside the room's box.
 
-**Independent Test**: No e2e (viewport touch), dispatch de pointer events sintéticos: 1 dedo altera azimute; pinch altera `camera.distance`; asserts via `window.__game.state().camera`.
+**Independent Test**: In e2e (touch viewport), synthetic pointer event dispatch: 1 finger changes azimuth; pinch changes `camera.distance`; asserts via `window.__game.state().camera`.
 
 ---
 
-### P1: Versão web para mouse ⭐ MVP
+### P1: Web version for mouse ⭐ MVP
 
-**User Story**: Como jogador no desktop, quero controlar a câmera com o mouse, para a versão web ser um jogo completo.
+**User Story**: As a player on desktop, I want to control the camera with the mouse, so the web version is a complete game.
 
 **Acceptance Criteria**:
 
-1. WHEN o botão esquerdo arrasta em área livre THEN a câmera SHALL orbitar.
-2. WHEN o botão direito arrasta THEN a câmera SHALL fazer pan; o menu de contexto SHALL permanecer suprimido no canvas.
-3. WHEN a roda do mouse gira THEN a câmera SHALL fazer zoom na direção do cursor (`dollyToCursor`), respeitando os limites de distância.
+1. WHEN the left button drags on free area THEN the camera SHALL orbit.
+2. WHEN the right button drags THEN the camera SHALL pan; the context menu SHALL remain suppressed on the canvas.
+3. WHEN the mouse wheel scrolls THEN the camera SHALL zoom toward the cursor (`dollyToCursor`), respecting the distance limits.
 
-**Independent Test**: No e2e (viewport desktop), arrasto com botão esquerdo muda azimute; wheel muda `camera.distance`; asserts via hook.
+**Independent Test**: In e2e (desktop viewport), left-button drag changes azimuth; wheel changes `camera.distance`; asserts via the hook.
 
 ---
 
-### P1: Integração com o gameplay ⭐ MVP
+### P1: Gameplay integration ⭐ MVP
 
-**User Story**: Como criança, quero que pegar brinquedo continue funcionando exatamente como antes, mesmo com a câmera controlável.
+**User Story**: As a child, I want picking up a toy to keep working exactly as before, even with a controllable camera.
 
 **Acceptance Criteria**:
 
-1. WHEN um toque/clique começa sobre um brinquedo THEN o arrasto do brinquedo SHALL ter prioridade e a câmera SHALL permanecer imóvel para esse ponteiro (controles desabilitados durante todo o arrasto; reabilitados no drop).
-2. WHEN a abertura (recuo do close na Bluey) está ativa THEN os gestos SHALL estar desabilitados; WHEN a abertura termina THEN os controles SHALL assumir a pose exata do fim da abertura (sem salto visível) e habilitar.
-3. WHEN os controles são desabilitados no meio de um gesto THEN o gesto SHALL morrer imediatamente (sem movimento residual da câmera).
-4. WHEN o estado é consultado THEN `window.__game.state().camera` SHALL expor `{ intro, gesturesEnabled, position: [x,y,z], target: [x,y,z], distance }` (números com 2 casas) para asserts determinísticos.
+1. WHEN a touch/click starts on a toy THEN dragging the toy SHALL take priority and the camera SHALL remain still for that pointer (controls disabled for the whole drag; re-enabled on drop).
+2. WHEN the opening (close-up pull-back on Bluey) is active THEN gestures SHALL be disabled; WHEN the opening ends THEN the controls SHALL take over the exact pose from the end of the opening (no visible jump) and enable.
+3. WHEN controls are disabled mid-gesture THEN the gesture SHALL die immediately (no residual camera movement).
+4. WHEN the state is queried THEN `window.__game.state().camera` SHALL expose `{ intro, gesturesEnabled, position: [x,y,z], target: [x,y,z], distance }` (numbers with 2 decimal places) for deterministic asserts.
 
-**Independent Test**: e2e: pointerdown num brinquedo + moves → pose da câmera inalterada e brinquedo `dragging`; ao fim da abertura, `gesturesEnabled === true` e pose igual à vista de jogo.
+**Independent Test**: e2e: pointerdown on a toy + moves → camera pose unchanged and toy `dragging`; at the end of the opening, `gesturesEnabled === true` and pose equal to the gameplay view.
 
 ---
 
 ## Edge Cases
 
-- WHEN um 3º dedo cai sobre um brinquedo durante gesto de 2 dedos THEN nenhum arrasto de brinquedo SHALL começar (guarda existente em `drag.js` mantida).
-- WHEN `pointercancel` ocorre no meio do gesto THEN o gesto SHALL terminar limpo (próximo toque começa do zero).
-- WHEN resize ocorre durante um gesto THEN a câmera SHALL continuar válida (sem NaN/salto).
-- WHEN a aba dorme e acorda THEN o clamp de dt existente SHALL impedir teleporte da câmera no `update`.
+- WHEN a 3rd finger lands on a toy during a 2-finger gesture THEN no toy drag SHALL start (existing guard in `drag.js` kept).
+- WHEN `pointercancel` occurs mid-gesture THEN the gesture SHALL end cleanly (next touch starts fresh).
+- WHEN a resize occurs during a gesture THEN the camera SHALL remain valid (no NaN/jump).
+- WHEN the tab sleeps and wakes THEN the existing dt clamp SHALL prevent camera teleportation in `update`.
 
 ## Implicit-Requirement Dimensions (Medium)
 
 | Dimension | Resolution |
 | --------- | ---------- |
-| Input validation & bounds | Gestos AC5 (limites de distância/polar/boundary) |
-| Concurrency / ordering | Integração AC1/AC3 + edge do 3º dedo (drag × câmera nunca simultâneos) |
-| State-transition integrity | Integração AC2 (intro → gestos, handoff de pose sem salto) |
-| Observability | Integração AC4 (hook `camera` com pose numérica) |
-| Demais dimensões | N/A para este escopo (sem persistência, rede, auth) |
+| Input validation & bounds | Gestures AC5 (distance/polar/boundary limits) |
+| Concurrency / ordering | Integration AC1/AC3 + 3rd-finger edge case (drag × camera never simultaneous) |
+| State-transition integrity | Integration AC2 (intro → gestures, pose handoff without a jump) |
+| Observability | Integration AC4 (`camera` hook with numeric pose) |
+| Other dimensions | N/A for this scope (no persistence, network, auth) |
 
 ---
 
@@ -108,19 +108,19 @@ Os controles de câmera atuais (v1 ad-hoc, não commitados) foram escritos à m�
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| CAMG-01 | P1 Gestos touch (AC 1–4, mapa por dedos + damping) | Tasks | Pending |
-| CAMG-02 | P1 Gestos touch (AC 5, limites/boundary) | Tasks | Pending |
+| CAMG-01 | P1 Touch gestures (AC 1–4, finger map + damping) | Tasks | Pending |
+| CAMG-02 | P1 Touch gestures (AC 5, limits/boundary) | Tasks | Pending |
 | CAMG-03 | P1 Mouse (AC 1–3) | Tasks | Pending |
-| CAMG-04 | P1 Integração (AC 1, prioridade do arrasto) | Tasks | Pending |
-| CAMG-05 | P1 Integração (AC 2–3, abertura + kill de gesto) | Tasks | Pending |
-| CAMG-06 | P1 Integração (AC 4, hook observável) | Tasks | Pending |
+| CAMG-04 | P1 Integration (AC 1, drag priority) | Tasks | Pending |
+| CAMG-05 | P1 Integration (AC 2–3, opening + gesture kill) | Tasks | Pending |
+| CAMG-06 | P1 Integration (AC 4, observable hook) | Tasks | Pending |
 
-**Coverage:** 6 total, 0 mapped to tasks, 6 unmapped ⚠️ (pré-tasks)
+**Coverage:** 6 total, 0 mapped to tasks, 6 unmapped ⚠️ (pre-tasks)
 
 ---
 
 ## Success Criteria
 
-- [ ] Câmera suave e previsível no touch e no mouse (validação e2e + manual).
-- [ ] Nenhuma regressão: suite Vitest verde, cenários e2e 01–05 continuam válidos, arrasto de brinquedo intacto.
-- [ ] `src/camera-controls.js` v1 substituído pela integração com `camera-controls` (yomotsu) — menos código próprio, comportamento de mercado.
+- [ ] Smooth and predictable camera on touch and mouse (e2e + manual validation).
+- [ ] No regression: Vitest suite green, e2e scenarios 01–05 remain valid, toy dragging intact.
+- [ ] `src/camera-controls.js` v1 replaced by the integration with `camera-controls` (yomotsu) — less custom code, market-standard behavior.

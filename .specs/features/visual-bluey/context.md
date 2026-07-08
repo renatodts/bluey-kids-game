@@ -8,50 +8,50 @@
 
 ## Feature Boundary
 
-Transformar o visual do jogo para "parecer um jogo da Bluey": sala dos Heeler estilizada em 3D, materiais/luz com cara de desenho, personagem Bluey 3D presente na cena (torcida/celebração) e transições animadas (abertura, entre rodadas, celebração cinematográfica). A mecânica de jogo (arrastar brinquedos às caixas) NÃO muda.
+Transform the game's visuals to "look like a Bluey game": a stylized 3D Heeler living room, materials/lighting with a cartoon feel, a 3D Bluey character present in the scene (cheering/celebrating), and animated transitions (opening, between rounds, cinematic celebration). The gameplay mechanic (dragging toys into boxes) does NOT change.
 
 ---
 
 ## Implementation Decisions
 
-### Personagem Bluey
+### Bluey Character
 
-- Modelo 3D fan-made (GLTF gratuito, licença compatível com uso privado).
-- **Fallback se não houver modelo utilizável: construir Bluey low-poly própria, procedural em Three.js** (estilo dos brinquedos atuais, mais elaborada). Decisão explícita do usuário — não cair para billboard 2D.
-- Papel: **torcida e celebração**. Bluey fica num canto assistindo; pula/comemora a cada acerto; dança no centro na rodada completa. Nunca interfere no arrasto.
+- Fan-made 3D model (free GLTF, license compatible with private use).
+- **Fallback if no usable model is found: build a proprietary low-poly Bluey, procedural in Three.js** (in the style of the current toys, more elaborate). Explicit user decision — do not fall back to a 2D billboard.
+- Role: **cheering and celebrating**. Bluey stays in a corner watching; jumps/cheers on every correct match; dances in the center when the round is complete. Never interferes with dragging.
 
-### Ambiente
+### Environment
 
-- **Sala dos Heeler estilizada**: recriação procedural da sala de estar da casa da Bluey — sofá, tapete, janela com quintal ensolarado, cores quentes do desenho.
-- Materiais toon/gradiente, sombras suaves, luz quente.
+- **Stylized Heeler living room**: procedural recreation of the living room in Bluey's house — sofa, rug, window with a sunny backyard, warm colors from the show.
+- Toon/gradient materials, soft shadows, warm light.
 
-### Transições (todas as três selecionadas)
+### Transitions (all three selected)
 
-- **Abertura estilo desenho**: tela inicial temática com transição animada (wipe/iris circular, como abertura de episódio) ao tocar play.
-- **Entre rodadas**: transição animada (iris ou cartela) antes dos novos brinquedos aparecerem.
-- **Celebração cinematográfica**: na rodada completa, passeio curto de câmera pela sala com confete/estrelas enquanto a Bluey dança. (A mecânica de câmera pertence à feature `mobile-camera`; esta feature define o CONTEÚDO da celebração.)
+- **Cartoon-style opening**: themed start screen with an animated transition (circular wipe/iris, like an episode opening) when play is tapped.
+- **Between rounds**: animated transition (iris or card wipe) before the new toys appear.
+- **Cinematic celebration**: on round completion, a short camera pass through the room with confetti/stars while Bluey dances. (The camera mechanics belong to the `mobile-camera` feature; this feature defines the CONTENT of the celebration.)
 
 ### Agent's Discretion
 
-- Escolha exata de mobília, paleta e composição da sala (referência: episódios da série).
-- Técnica de toon shading (gradient map vs shader custom).
-- Duração/curvas exatas das transições (dentro dos limites da spec).
+- Exact choice of furniture, palette, and room composition (reference: show episodes).
+- Toon shading technique (gradient map vs. custom shader).
+- Exact duration/curves of the transitions (within the spec's limits).
 
 ### Declined / Undiscussed Gray Areas → Assumptions
 
-- Bingo (irmã) na cena: assumido **opcional/P3** — usuário não pediu explicitamente; só Bluey é obrigatória.
-- Sons novos para transições: assumido reutilizar/estender o sistema WebAudio sintetizado existente (GUARD-09), sem novos assets de áudio.
+- Bingo (sister) in the scene: assumed **optional/P3** — not explicitly requested by the user; only Bluey is mandatory.
+- New sounds for transitions: assumed to reuse/extend the existing synthesized WebAudio system (GUARD-09), with no new audio assets.
 
 ---
 
 ## Specific References
 
-- "Tem que parecer um jogo da Bluey" — fidelidade visual à série (animação 2D da Ludo Studio): cores saturadas e quentes, formas arredondadas, sem realismo.
-- Arte oficial já disponível em `assets/bluey/` (frames, plaquetas, bluey-cheer.png) — continuar usando onde couber.
-- Limite de IP: AD-005 (uso privado em família).
+- "It has to look like a Bluey game" — visual fidelity to the show (Ludo Studio's 2D animation): saturated, warm colors, rounded shapes, no realism.
+- Official art already available in `assets/bluey/` (frames, plaques, bluey-cheer.png) — keep using it where it fits.
+- IP boundary: AD-005 (private family use).
 
 ---
 
 ## Deferred Ideas
 
-- Bluey como guia ativa (apontar a caixa certa como dica) — descartado pelo usuário nesta rodada; possível feature futura de "dicas".
+- Bluey as an active guide (pointing to the correct box as a hint) — dropped by the user this round; possible future "hints" feature.

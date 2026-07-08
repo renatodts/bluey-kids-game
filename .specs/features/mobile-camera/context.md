@@ -8,49 +8,49 @@
 
 ## Feature Boundary
 
-Fazer o jogo funcionar bem no celular em viewport cheia, servido na rede local via IP: tela cheia em paisagem, e uma "câmera viva" que se move automaticamente para dar sensação de ambiente em movimento e foco na ação. A criança NUNCA controla a câmera diretamente.
+Make the game work well on mobile in full viewport, served on the local network via IP: fullscreen in landscape, and a "living camera" that moves automatically to give a sense of a moving environment and focus on the action. The child NEVER controls the camera directly.
 
 ---
 
 ## Implementation Decisions
 
-### Câmera viva automática
+### Automatic living camera
 
-- Escolha do usuário: **câmera viva automática** (não pan manual). Mantém o espírito do AD-002 — a criança não controla câmera — mas o enquadramento deixa de ser estático:
-  - Aproxima suavemente do brinquedo sendo arrastado (follow com easing).
-  - Enquadra a caixa no acerto.
-  - Faz passeio curto na celebração de rodada completa (conteúdo definido na feature `visual-bluey`).
-  - Volta ao enquadramento diorama quando ocioso.
+- User's choice: **automatic living camera** (not manual pan). Keeps the spirit of AD-002 — the child doesn't control the camera — but the framing is no longer static:
+  - Smoothly approaches the toy being dragged (follow with easing).
+  - Frames the box on a hit.
+  - Does a short tour during the celebration of a completed round (content defined in the `visual-bluey` feature).
+  - Returns to the diorama framing when idle.
 
-### Tela cheia e orientação
+### Fullscreen and orientation
 
-- Botão play pede **fullscreen** e trava **landscape** (best effort — iOS Safari não suporta Fullscreen API/orientation lock em iPhone; nesses casos, viewport cheia via CSS/meta é o máximo possível).
-- Em retrato, aviso visual "vire o celular" (sem texto longo; ícone/animação — público de 4 anos).
+- The play button requests **fullscreen** and locks **landscape** (best effort — iOS Safari doesn't support the Fullscreen API/orientation lock on iPhone; in those cases, full viewport via CSS/meta is the maximum possible).
+- In portrait, a visual "turn your phone" warning (no long text; icon/animation — for a 4-year-old audience).
 
-### Servir na rede local
+### Serving on the local network
 
-- Jogo acessado via link `http://IP:porta` — servidor Vite com `--host` (dev e preview). Nenhuma API que exija secure context pode ser requisito de jogabilidade.
+- The game is accessed via an `http://IP:port` link — Vite server with `--host` (dev and preview). No API that requires a secure context may be a gameplay requirement.
 
 ### Agent's Discretion
 
-- Curvas de easing, distâncias e limites exatos da câmera (desde que a sala nunca "se perca" do enquadramento).
-- Implementação do aviso de retrato (overlay CSS vs cena).
+- Easing curves, distances, and exact camera limits (as long as the room never "loses" the framing).
+- Implementation of the portrait warning (CSS overlay vs. scene).
 
 ### Declined / Undiscussed Gray Areas → Assumptions
 
-- Pan manual pelo dedo: **descartado** pelo usuário (escolheu automática pura).
-- PWA/instalável: assumido fora de escopo — acesso é via link direto no navegador.
-- Vibração (haptics) no acerto: assumido fora de escopo — não pedido.
+- Manual finger pan: **dropped** by the user (chose pure automatic).
+- PWA/installable: assumed out of scope — access is via a direct browser link.
+- Vibration (haptics) on a hit: assumed out of scope — not requested.
 
 ---
 
 ## Specific References
 
-- "Será jogado no celular via link de servidor com IP" — rede local, HTTP simples.
-- AD-002 permanece no espírito (sem controle de câmera pela criança); o enquadramento fixo é revisado para "câmera automática com retorno ao diorama".
+- "Will be played on mobile via a server link with an IP" — local network, plain HTTP.
+- AD-002 remains in spirit (no camera control by the child); the fixed framing is revised to "automatic camera with return to the diorama."
 
 ---
 
 ## Deferred Ideas
 
-- Ajuste manual leve de pan (combinado com automático) — opção não escolhida; candidata futura se a câmera automática não bastar.
+- Light manual pan adjustment (combined with automatic) — option not chosen; a future candidate if the automatic camera isn't enough.

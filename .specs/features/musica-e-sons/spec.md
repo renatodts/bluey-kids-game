@@ -1,21 +1,21 @@
-# Música e Sons Specification
+# Music and Sounds Specification
 
 ## Problem Statement
 
-O jogo hoje só tem efeitos sonoros pontuais de acerto/vitória (GUARD-09); a sala fica em silêncio entre eles, e não há nenhum retorno sonoro quando a criança erra a caixa. O pedido é dar mais vida sonora ao jogo com uma música de fundo divertida, sem tirar o protagonismo dos efeitos do próprio jogo, e adicionar um toque também para o caso de erro.
+The game today only has occasional sound effects for a correct match/win (GUARD-09); the room stays silent between them, and there is no sound feedback at all when the child misses the box. The request is to give the game more sonic life with a fun background music track, without taking the spotlight away from the game's own effects, and to also add a touch for the miss case.
 
 ## Goals
 
-- [ ] Música de fundo alegre, em loop, tocando durante o jogo
-- [ ] Efeitos do jogo (acerto/fanfarra/vitória/erro) sempre audíveis em primeiro plano sobre a música
-- [ ] Toque curto e não-punitivo quando a criança erra a caixa
+- [ ] Cheerful background music, looping, playing during the game
+- [ ] Game effects (hit/fanfare/victory/miss) always audible in the foreground over the music
+- [ ] Short, non-punitive touch when the child misses the box
 
 ## Out of Scope
 
 | Feature | Reason |
 |---|---|
-| Botão de mudo / controle de volume | Fora de escopo por agora (decidido com o usuário) — YAGNI |
-| Baixar arquivo de música externo | Decidido com o usuário: sintetizar via WebAudio, mesmo padrão de GUARD-09, evita risco de licença/rede (AD-005, lição L-003) |
+| Mute button / volume control | Out of scope for now (decided with the user) — YAGNI |
+| Downloading an external music file | Decided with the user: synthesize via WebAudio, same pattern as GUARD-09, avoids license/network risk (AD-005, lesson L-003) |
 
 ---
 
@@ -23,79 +23,79 @@ O jogo hoje só tem efeitos sonoros pontuais de acerto/vitória (GUARD-09); a sa
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 |---|---|---|---|
-| Fonte da música de fundo | Sintetizada via WebAudio (osciladores), loop curto e alegre | Já validado com o usuário; consistente com AD-005/L-003 | y |
-| Tom do som de erro | Curto, bem-humorado, não é buzzer/punição | Já validado com o usuário; preserva a intenção original de GUARD-03 (não punir a criança) | y |
-| Mixagem música x efeitos | Música em volume baixo constante + duck automático (abaixa mais ainda por uma fração de segundo) durante qualquer efeito do jogo | Já validado com o usuário — garante que efeitos "fiquem em evidência" | y |
-| Escopo do som de erro (caixa errada vs. solto fora de caixa) | Toca nos dois casos: caixa de tipo errado (`rejected`) E solto fora de qualquer caixa (`settle`) | Perguntado diretamente ao usuário, que preferiu cobrir os dois casos em vez de só o de caixa errada | y |
-| Controle de mudo | Não incluir nesta entrega | Já validado com o usuário (fora de escopo) | y |
+| Background music source | Synthesized via WebAudio (oscillators), short and cheerful loop | Already validated with the user; consistent with AD-005/L-003 | y |
+| Tone of the miss sound | Short, good-humored, not a buzzer/punishment | Already validated with the user; preserves the original intent of GUARD-03 (don't punish the child) | y |
+| Music vs. effects mixing | Music at a constant low volume + automatic duck (lowers it even further for a fraction of a second) during any game effect | Already validated with the user — ensures effects "stand out" | y |
+| Scope of the miss sound (wrong box vs. dropped outside a box) | Plays in both cases: wrong-type box (`rejected`) AND dropped outside any box (`settle`) | Asked directly to the user, who preferred covering both cases instead of only the wrong-box one | y |
+| Mute control | Not included in this delivery | Already validated with the user (out of scope) | y |
 
-**Open questions:** nenhuma — todas resolvidas ou registradas acima.
+**Open questions:** none — all resolved or recorded above.
 
 ---
 
 ## User Stories
 
-### P1: Música de fundo divertida ⭐ MVP
+### P1: Fun background music ⭐ MVP
 
-**User Story**: Como criança, quero que a sala tenha uma musiquinha animada tocando enquanto jogo.
+**User Story**: As a child, I want the room to have a lively little tune playing while I play.
 
-**Why P1**: É o pedido central desta feature.
+**Why P1**: It's the central request of this feature.
 
 **Acceptance Criteria**:
 
-1. QUANDO o WebAudio é destravado (mesmo gesto do GUARD-09.1, botão de play) ENTÃO o sistema DEVE iniciar uma trilha de fundo sintetizada via WebAudio, curta e alegre, em loop contínuo enquanto o jogo estiver aberto (MUS-01)
-2. QUANDO a trilha está tocando ENTÃO o sistema DEVE mantê-la em volume perceptivelmente mais baixo que qualquer efeito de jogo (chime/oops/fanfare/victoryTune) (MUS-02)
-3. QUANDO o áudio não pode ser destravado ENTÃO o sistema DEVE seguir mudo (sem música, sem efeitos) e funcional, sem erros no console (reaproveita GUARD-09.3)
+1. WHEN WebAudio is unlocked (same gesture as GUARD-09.1, the play button) THEN the system SHALL start a synthesized background track via WebAudio, short and cheerful, looping continuously while the game is open (MUS-01)
+2. WHILE the track is playing THE system SHALL keep it at a noticeably lower volume than any game effect (chime/oops/fanfare/victoryTune) (MUS-02)
+3. WHEN audio cannot be unlocked THEN the system SHALL remain silent (no music, no effects) and functional, with no console errors (reuses GUARD-09.3)
 
-**Independent Test**: Tocar play → música começa a tocar baixinho em loop; deixar o jogo aberto por mais de um loop inteiro → música recomeça sem corte perceptível nem duplicar/sobrepor vozes.
+**Independent Test**: Tap play → music starts playing softly in a loop; leave the game open for more than one full loop → music restarts with no perceptible cut and no doubled/overlapping voices.
 
 ---
 
-### P1: Efeitos do jogo em evidência sobre a música ⭐ MVP
+### P1: Game effects standing out over the music ⭐ MVP
 
-**User Story**: Como criança, quero que o som de "consegui!" continue se destacando mesmo com a musiquinha tocando.
+**User Story**: As a child, I want the "I did it!" sound to keep standing out even with the little tune playing.
 
-**Why P1**: Sem isso a música de fundo abafa o reforço positivo que já existia — regressão do GUARD-09 original.
+**Why P1**: Without this, the background music muffles the positive reinforcement that already existed — a regression of the original GUARD-09.
 
 **Acceptance Criteria**:
 
-1. QUANDO qualquer efeito do jogo toca (chime de acerto, som de erro, fanfarra de rodada, jingle de vitória) ENTÃO o sistema DEVE abaixar (duck) o volume da música de fundo por uma fração de segundo e retorná-lo ao volume base logo depois, garantindo o efeito sempre audível em primeiro plano (MUS-03)
-2. QUANDO dois efeitos tocam em sequência rápida (ex.: dois acertos seguidos) ENTÃO o duck DEVE se comportar de forma estável, sem deixar a música "presa" em volume baixo ou o volume saltando de forma abrupta/audivelmente quebrada (MUS-03.1)
+1. WHEN any game effect plays (hit chime, miss sound, round fanfare, victory jingle) THEN the system SHALL duck (lower) the background music's volume for a fraction of a second and return it to the base volume right after, guaranteeing the effect is always audible in the foreground (MUS-03)
+2. WHEN two effects play in quick succession (e.g., two hits in a row) THEN the duck SHALL behave stably, without leaving the music "stuck" at low volume or the volume jumping abruptly/audibly broken (MUS-03.1)
 
-**Independent Test**: Acertar uma caixa com a música tocando → percebe-se o chime nítido por cima da música, que volta ao volume normal logo depois.
+**Independent Test**: Hit a box while the music is playing → the chime is clearly heard over the music, which returns to normal volume shortly after.
 
 ---
 
-### P1: Toque ao errar, sem punição ⭐ MVP
+### P1: Touch on a miss, without punishment ⭐ MVP
 
-**User Story**: Como criança, quero um toque engraçado quando erro a caixa, sem me sentir repreendida.
+**User Story**: As a child, I want a funny touch when I miss the box, without feeling scolded.
 
-**Why P1**: Pedido explícito do usuário; emenda direta ao GUARD-03 original.
+**Why P1**: Explicit request from the user; a direct amendment to the original GUARD-03.
 
 **Acceptance Criteria**:
 
-1. QUANDO um brinquedo é solto dentro do raio de acerto de uma caixa de tipo DIFERENTE ENTÃO o sistema DEVE, além do balanço visual já existente (GUARD-03), tocar um som curto e bem-humorado — nunca um buzzer/tom de "erro" tradicional nem qualquer variação de volume que soe como repreensão (MUS-04, emenda GUARD-03)
-2. QUANDO o brinquedo é solto fora do raio de qualquer caixa ENTÃO o sistema DEVE, além do assentamento visual já existente (GUARD-03), tocar o MESMO som curto e bem-humorado de MUS-04 (MUS-04.1, emenda GUARD-03)
+1. WHEN a toy is dropped within the hit radius of a box of a DIFFERENT type THEN the system SHALL, in addition to the already-existing visual wobble (GUARD-03), play a short and good-humored sound — never a traditional buzzer/"error" tone nor any volume variation that sounds like a reprimand (MUS-04, amendment to GUARD-03)
+2. WHEN the toy is dropped outside the radius of any box THEN the system SHALL, in addition to the already-existing visual settle (GUARD-03), play the SAME short and good-humored sound from MUS-04 (MUS-04.1, amendment to GUARD-03)
 
-**Independent Test**: Arrastar um bloco até a cesta (tipo errado) → cesta balança + toque engraçado curto; arrastar um brinquedo para o chão vazio → assenta suavemente + mesmo toque engraçado curto.
+**Independent Test**: Drag a block onto the basket (wrong type) → basket wobbles + short funny touch; drag a toy to the empty floor → settles smoothly + same short funny touch.
 
 ---
 
 ## Edge Cases
 
-- QUANDO a música está tocando e o jogador erra logo em seguida a um acerto (chime + oops muito próximos) ENTÃO ambos os efeitos DEVEM tocar de forma audível, sem um cortar o outro
-- QUANDO a celebração de vitória dispara (jingle mais longo, ~2s) ENTÃO a música de fundo DEVE permanecer com duck aplicado durante toda a duração do jingle, não só no ataque inicial
-- QUANDO o `AudioContext` falha ao iniciar/destravar ENTÃO nem música nem efeitos tocam, e nenhum erro deve aparecer no console (mesma garantia de GUARD-09.3)
+- WHEN the music is playing and the player misses right after a hit (chime + oops very close together) THEN both effects SHALL play audibly, without one cutting off the other
+- WHEN the victory celebration fires (longer jingle, ~2s) THEN the background music SHALL remain ducked for the entire duration of the jingle, not just the initial attack
+- WHEN the `AudioContext` fails to start/unlock THEN neither music nor effects play, and no error should appear in the console (same guarantee as GUARD-09.3)
 
 ---
 
 ## Implicit-Requirement Dimensions (sweep)
 
-Dimensões restantes N/A para este escopo (sem persistência nova, sem chamada externa, sem auth, sem concorrência além da já coberta por GUARD-09) — única dimensão relevante:
+Remaining dimensions N/A for this scope (no new persistence, no external call, no auth, no concurrency beyond what's already covered by GUARD-09) — the only relevant dimension:
 
-| Dimensão | Resolução |
+| Dimension | Resolution |
 |---|---|
-| State-transition integrity | Música tem só dois estados (`parada` → `tocando em loop`), iniciados uma única vez no unlock; duck é um envelope de gain por evento, sem estado persistente entre efeitos |
+| State-transition integrity | Music has only two states (`stopped` → `looping`), started once on unlock; duck is a per-event gain envelope, with no state persisted between effects |
 
 ---
 
@@ -103,22 +103,22 @@ Dimensões restantes N/A para este escopo (sem persistência nova, sem chamada e
 
 | Requirement ID | Story | Phase | Status |
 |---|---|---|---|
-| MUS-01 | P1: Música de fundo | Execute | Implemented |
-| MUS-02 | P1: Música de fundo | Execute | Implemented |
-| MUS-03 | P1: Efeitos em evidência | Execute | Implemented |
-| MUS-03.1 | P1: Efeitos em evidência | Execute | Implemented |
-| MUS-04 | P1: Toque ao errar (emenda GUARD-03) | Execute | Implemented |
-| MUS-04.1 | P1: Toque ao errar (emenda GUARD-03) | Execute | Implemented |
+| MUS-01 | P1: Background music | Execute | Implemented |
+| MUS-02 | P1: Background music | Execute | Implemented |
+| MUS-03 | P1: Effects standing out | Execute | Implemented |
+| MUS-03.1 | P1: Effects standing out | Execute | Implemented |
+| MUS-04 | P1: Touch on a miss (amendment to GUARD-03) | Execute | Implemented |
+| MUS-04.1 | P1: Touch on a miss (amendment to GUARD-03) | Execute | Implemented |
 
-**Coverage:** 6 total, 6 mapeados (implícito em Execute, sem tasks.md formal — escopo Medium), 0 sem mapeamento.
+**Coverage:** 6 total, 6 mapped (implicit in Execute, no formal tasks.md — Medium scope), 0 unmapped.
 
-**Implementação:** `src/feedback.js` (`createAudio()`: `startMusic`/`tickMusic`/`duck`/`oops`; `createFeedback()`: `update()` chama `tickMusic()`, `rejected()`/`settle()` chamam `oops()`). Sem testes unitários dedicados — `AudioContext`/agendamento de osciladores não é testável em jsdom/Vitest; mesma exceção de AD-004 já aplicada a `chime`/`fanfare`/`victoryTune` (nenhum dos três tinha teste antes desta feature). Validação é: suite Vitest 50/50 no commit desta feature, sem regressão (nenhum teste quebrado/removido) + `npm run build` limpo + escuta manual (`npm run dev`). Verificado de forma independente em `.specs/features/musica-e-sons/validation.md` (Verifier PASS).
+**Implementation:** `src/feedback.js` (`createAudio()`: `startMusic`/`tickMusic`/`duck`/`oops`; `createFeedback()`: `update()` calls `tickMusic()`, `rejected()`/`settle()` call `oops()`). No dedicated unit tests — `AudioContext`/oscillator scheduling is not testable under jsdom/Vitest; same exception as AD-004 already applied to `chime`/`fanfare`/`victoryTune` (none of the three had a test before this feature). Validation is: Vitest suite 50/50 on this feature's commit, no regression (no test broken/removed) + clean `npm run build` + manual listening (`npm run dev`). Independently verified in `.specs/features/musica-e-sons/validation.md` (Verifier PASS).
 
-**Nota de emenda:** esta feature revisa o texto de `GUARD-03` (P1: Arrastar e guardar) e `GUARD-09` (P2: Som) em `.specs/features/hora-de-guardar/spec.md` — "sem som negativo" passa a "sem som punitivo tradicional; som curto e bem-humorado permitido". O texto original será atualizado com uma nota apontando para MUS-04.
+**Amendment note:** this feature revises the text of `GUARD-03` (P1: Drag and put away) and `GUARD-09` (P2: Sound) in `.specs/features/hora-de-guardar/spec.md` — "no negative sound" becomes "no traditional punitive sound; a short and good-humored sound is allowed." The original text will be updated with a note pointing to MUS-04.
 
 ---
 
 ## Success Criteria
 
-- [ ] Criança de 4 anos joga uma rodada inteira com música tocando e continua percebendo claramente quando acerta/erra
-- [ ] Nenhuma regressão nos efeitos de acerto/fanfarra/vitória existentes (GUARD-09)
+- [ ] A 4-year-old plays a full round with music playing and still clearly notices when they hit or miss
+- [ ] No regression in the existing hit/fanfare/victory effects (GUARD-09)

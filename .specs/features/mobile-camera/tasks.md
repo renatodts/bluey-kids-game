@@ -11,51 +11,51 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 **Design**: `.specs/features/mobile-camera/design.md`
 **Status**: Draft
 
-**Pré-requisito**: feature `visual-bluey` implementada e mesclada antes de iniciar esta — ambas tocam `src/scene.js` (Risks & Concerns do design.md); executar em série evita conflito de merge dentro da mesma sessão.
+**Prerequisite**: the `visual-bluey` feature must be implemented and merged before starting this one — both touch `src/scene.js` (see Risks & Concerns in design.md); running them in series avoids a merge conflict within the same session.
 
 ---
 
 ## Test Coverage Matrix
 
-> Generated from codebase sampling (`src/game.js` + `src/game.test.js`, precedente de `hora-de-guardar/tasks.md` e de `visual-bluey/tasks.md`). Guidelines found: nenhum `AGENTS.md`/`CLAUDE.md`/`CONTRIBUTING.md` no repo — convenção inferida do código existente (AD-004: lógica pura testada, renderização/browser API validada manual/e2e).
+> Generated from codebase sampling (`src/game.js` + `src/game.test.js`, precedent from `hora-de-guardar/tasks.md` and `visual-bluey/tasks.md`). Guidelines found: no `AGENTS.md`/`CLAUDE.md`/`CONTRIBUTING.md` in the repo — convention inferred from existing code (AD-004: pure logic tested, rendering/browser API validated manually/e2e).
 
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | ---------- | ------------------- | ---------------------- | ------------------ | ------------- |
-| Lógica de câmera (`src/cameraFraming.js`, `src/cameraDirector.js`) — sem `three`, sem DOM | unit (Vitest) | Todos os branches; 1:1 com AC MOB-04..07 (transições de estado, invariante de enquadramento, re-entrância, clamp de dt) | `src/*.test.js` | `npm test` |
-| Módulos de renderização/browser API (`src/scene.js`, `src/fullscreen.js`, `src/drag.js` mudanças, `src/main.js`) | none | — (build gate; comportamento coberto pelos fluxos E2E, mesmo padrão de `hora-de-guardar`/`visual-bluey`) | — | `npm run build` |
-| Fluxos integrados (fullscreen, retrato, follow de câmera) | e2e (Playwright MCP, prompt-guided, AD-006) | Cenários cobrindo AC MOB-01..08 via `window.__game` hook (`camera.mode`) + screenshots | `e2e/scenarios/*.md` | Executar via Playwright MCP contra `vite preview` |
+| Camera logic (`src/cameraFraming.js`, `src/cameraDirector.js`) — no `three`, no DOM | unit (Vitest) | All branches; 1:1 with AC MOB-04..07 (state transitions, framing invariant, re-entrancy, dt clamp) | `src/*.test.js` | `npm test` |
+| Rendering/browser API modules (`src/scene.js`, `src/fullscreen.js`, `src/drag.js` changes, `src/main.js`) | none | — (build gate; behavior covered by E2E flows, same pattern as `hora-de-guardar`/`visual-bluey`) | — | `npm run build` |
+| Integrated flows (fullscreen, portrait, camera follow) | e2e (Playwright MCP, prompt-guided, AD-006) | Scenarios covering AC MOB-01..08 via the `window.__game` hook (`camera.mode`) + screenshots | `e2e/scenarios/*.md` | Run via Playwright MCP against `vite preview` |
 
 ## Gate Check Commands
 
 | Gate Level | When to Use | Command |
 | ---------- | ----------- | ------- |
-| Quick | Tasks com testes unitários (`cameraFraming.js`, `cameraDirector.js`) | `npm test` |
-| Build | Tasks só de renderização/config | `npm run build && npm test` |
-| Full | Tasks de fluxo integrado | `npm run build && npm test` + executar o(s) cenário(s) E2E da task via Playwright MCP |
+| Quick | Tasks with unit tests (`cameraFraming.js`, `cameraDirector.js`) | `npm test` |
+| Build | Rendering/config-only tasks | `npm run build && npm test` |
+| Full | Integrated-flow tasks | `npm run build && npm test` + run the task's E2E scenario(s) via Playwright MCP |
 
 ---
 
 ## Execution Plan
 
-### Phase 1: Câmera — lógica pura
+### Phase 1: Camera — pure logic
 
 ```
 T1 → T2
 ```
 
-### Phase 2: Integração da câmera no jogo
+### Phase 2: Wiring the camera into the game
 
 ```
 T3 → T4 → T5
 ```
 
-### Phase 3: Fullscreen e retrato
+### Phase 3: Fullscreen and portrait
 
 ```
 T6 → T7
 ```
 
-### Phase 4: Docs e revisão E2E
+### Phase 4: Docs and E2E review
 
 ```
 T8 → T9
@@ -65,23 +65,23 @@ T8 → T9
 
 ## Task Breakdown
 
-### T1: Criar `cameraFraming.js` (matemática de enquadramento pura)
+### T1: Create `cameraFraming.js` (pure framing math)
 
-**What**: `frameDistance(points, fov, aspect, margin)` — distância mínima da câmera para caber um conjunto de pontos no frustum; `dioramaPose(aspect)` — refatoração pura da fórmula hoje em `scene.js:100-110` (`onResize`).
+**What**: `frameDistance(points, fov, aspect, margin)` — minimum camera distance to fit a set of points inside the frustum; `dioramaPose(aspect)` — pure refactor of the formula currently in `scene.js:100-110` (`onResize`).
 **Where**: `src/cameraFraming.js`
 **Depends on**: None
-**Reuses**: Fórmula de `widen`/distância de `src/scene.js:106` (generalizada para N pontos em vez de aspect isolado)
+**Reuses**: The `widen`/distance formula from `src/scene.js:106` (generalized to N points instead of a single aspect)
 **Requirement**: MOB-04, MOB-07
 
 **Tools**:
-- MCP: `context7` (conferir fórmulas de FOV/frustum do Three.js, mesmo sem depender de `three` no código)
+- MCP: `context7` (check Three.js FOV/frustum formulas, even without depending on `three` in the code)
 - Skill: NONE
 
 **Done when**:
-- [ ] Testes cobrem: 1 ponto, N pontos dispersos, aspect extremos (retrato estreito e paisagem larga), `margin` aplicado corretamente
-- [ ] `dioramaPose(aspect)` produz a mesma pose numérica que o `onResize` atual para os aspects testados em `hora-de-guardar` (regressão zero visual)
-- [ ] Gate passa: `npm test`
-- [ ] Test count: 6+ testes passam (sem deleção silenciosa)
+- [ ] Tests cover: 1 point, N scattered points, extreme aspects (narrow portrait and wide landscape), `margin` applied correctly
+- [ ] `dioramaPose(aspect)` produces the same numeric pose as the current `onResize` for the aspects tested in `hora-de-guardar` (zero visual regression)
+- [ ] Gate passes: `npm test`
+- [ ] Test count: 6+ tests pass (no silent deletion)
 
 **Tests**: unit
 **Gate**: quick
@@ -89,12 +89,12 @@ T8 → T9
 
 ---
 
-### T2: Criar `cameraDirector.js` (máquina de estados)
+### T2: Create `cameraDirector.js` (state machine)
 
-**What**: `createCameraDirector({dioramaPose, roomBounds})` com estados `idle/follow/emphasis/celebrate/return`, damping exponencial, e `update(dt)` retornando `{position, lookAt, mode}`.
+**What**: `createCameraDirector({dioramaPose, roomBounds})` with states `idle/follow/emphasis/celebrate/return`, exponential damping, and `update(dt)` returning `{position, lookAt, mode}`.
 **Where**: `src/cameraDirector.js`
 **Depends on**: T1
-**Reuses**: `frameDistance`/`dioramaPose` (T1); padrão de módulo puro testável de `game.js` (AD-004)
+**Reuses**: `frameDistance`/`dioramaPose` (T1); the testable pure-module pattern from `game.js` (AD-004)
 **Requirement**: MOB-04, MOB-05, MOB-06, MOB-07
 
 **Tools**:
@@ -102,10 +102,10 @@ T8 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Testes cobrem cada transição da máquina de estados: `idle→follow→return→idle`; `follow→emphasis→(novo follow cancela)`; `celebrate` só aceito a partir de `idle`/`return`; `dt` grande (aba dormiu) não gera `NaN`/salto
-- [ ] Enquadramento de `follow`/`emphasis` mantém as 3 caixas + alvo dentro do frustum (teste com pontos fixos das caixas de `boxes.js`)
-- [ ] Gate passa: `npm test`
-- [ ] Test count: 10+ testes passam (sem deleção silenciosa)
+- [ ] Tests cover each state-machine transition: `idle→follow→return→idle`; `follow→emphasis→(new follow cancels)`; `celebrate` only accepted from `idle`/`return`; large `dt` (tab was asleep) doesn't produce `NaN`/jump
+- [ ] Framing in `follow`/`emphasis` keeps the 3 boxes + target inside the frustum (test with fixed points from `boxes.js`)
+- [ ] Gate passes: `npm test`
+- [ ] Test count: 10+ tests pass (no silent deletion)
 
 **Tests**: unit
 **Gate**: quick
@@ -113,21 +113,21 @@ T8 → T9
 
 ---
 
-### T3: Refatorar `scene.js` — `onResize` deixa de tocar a câmera diretamente
+### T3: Refactor `scene.js` — `onResize` stops touching the camera directly
 
-**What**: `onResize()` recalcula `renderer.setSize`/`camera.aspect`/`updateProjectionMatrix` e retorna a nova `dioramaPose(aspect)` (T1) em vez de setar `camera.position`/`lookAt` diretamente.
-**Where**: `src/scene.js` (modifica)
+**What**: `onResize()` recalculates `renderer.setSize`/`camera.aspect`/`updateProjectionMatrix` and returns the new `dioramaPose(aspect)` (T1) instead of setting `camera.position`/`lookAt` directly.
+**Where**: `src/scene.js` (modify)
 **Depends on**: T1
 **Reuses**: `dioramaPose` (T1)
-**Requirement**: MOB-07 (mitigação do Risk "onResize briga com cameraDirector")
+**Requirement**: MOB-07 (mitigation for the "onResize fights cameraDirector" risk)
 
 **Tools**:
 - MCP: NONE
 - Skill: `threejs-fundamentals`
 
 **Done when**:
-- [ ] `onResize()` não seta mais `camera.position`/`camera.lookAt`; retorna a pose calculada
-- [ ] `npm run build` passa (visual idêntico ao estado anterior até T5 conectar o director)
+- [ ] `onResize()` no longer sets `camera.position`/`camera.lookAt`; it returns the computed pose
+- [ ] `npm run build` passes (visually identical to the previous state until T5 wires up the director)
 
 **Tests**: none
 **Gate**: build
@@ -135,12 +135,12 @@ T8 → T9
 
 ---
 
-### T4: Estender `drag.js` — `onDragMove` e `isBlocked`
+### T4: Extend `drag.js` — `onDragMove` and `isBlocked`
 
-**What**: `createDrag` recebe `onDragMove(toyId, pos)` (disparado ao fim de `onPointerMove`) e `isBlocked` (checado no início de `onPointerDown`) — ambos opcionais, aditivos.
-**Where**: `src/drag.js` (modifica)
+**What**: `createDrag` receives `onDragMove(toyId, pos)` (fired at the end of `onPointerMove`) and `isBlocked` (checked at the start of `onPointerDown`) — both optional, additive.
+**Where**: `src/drag.js` (modify)
 **Depends on**: None
-**Reuses**: Estrutura de callbacks existente (`onPick`/`onDrop`)
+**Reuses**: Existing callback structure (`onPick`/`onDrop`)
 **Requirement**: MOB-06
 
 **Tools**:
@@ -148,8 +148,8 @@ T8 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Chamada sem os novos parâmetros continua funcionando (retrocompatível — `hora-de-guardar` e `visual-bluey` não quebram)
-- [ ] `npm run build && npm test` passa
+- [ ] Calling without the new parameters still works (backward compatible — `hora-de-guardar` and `visual-bluey` don't break)
+- [ ] `npm run build && npm test` passes
 
 **Tests**: none
 **Gate**: build
@@ -157,12 +157,12 @@ T8 → T9
 
 ---
 
-### T5: Integrar `cameraDirector` em `main.js`
+### T5: Integrate `cameraDirector` into `main.js`
 
-**What**: Cria `cameraDirector` com a `dioramaPose` inicial; loop de animação chama `update(dt)` e aplica a pose em `camera.position`/`camera.lookAt` antes de `renderer.render`; `onPick`→`follow`, `onDragMove`→`follow`, `handleDrop` (stored)→`emphasize`→`release`, (rejected/fora)→`release`; `roundComplete`→`celebrate`; hook ganha `window.__game.state().camera.mode`; `onResize` do `window` passa a chamar `cameraDirector.setIdlePose(scene.onResize())`.
-**Where**: `src/main.js` (modifica)
+**What**: Creates `cameraDirector` with the initial `dioramaPose`; the animation loop calls `update(dt)` and applies the pose to `camera.position`/`camera.lookAt` before `renderer.render`; `onPick`→`follow`, `onDragMove`→`follow`, `handleDrop` (stored)→`emphasize`→`release`, (rejected/outside)→`release`; `roundComplete`→`celebrate`; the hook gains `window.__game.state().camera.mode`; the `window`'s `onResize` now calls `cameraDirector.setIdlePose(scene.onResize())`.
+**Where**: `src/main.js` (modify)
 **Depends on**: T2, T3, T4
-**Reuses**: `cameraDirector.js` (T2); estrutura de `handleDrop`/`spawnRound` existente
+**Reuses**: `cameraDirector.js` (T2); existing `handleDrop`/`spawnRound` structure
 **Requirement**: MOB-04, MOB-05, MOB-06, MOB-07
 
 **Tools**:
@@ -170,33 +170,33 @@ T8 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Arrastar um brinquedo aproxima a câmera suavemente (checado em `npm run dev`); soltar retorna ao diorama
-- [ ] Completar rodada dispara o passeio de celebração e retorna ao diorama quando a nova rodada é interativa
-- [ ] `window.__game.state().camera.mode` reflete o estado atual
-- [ ] `npm run build && npm test` passa
+- [ ] Dragging a toy smoothly pulls the camera closer (checked in `npm run dev`); releasing returns to the diorama
+- [ ] Completing a round triggers the celebration fly-around and returns to the diorama once the new round is interactive
+- [ ] `window.__game.state().camera.mode` reflects the current state
+- [ ] `npm run build && npm test` passes
 
-**Tests**: none (fluxo coberto no E2E de T9)
+**Tests**: none (flow covered in T9's E2E)
 **Gate**: build
 **Commit**: `feat(camera): wire live camera director into gameplay`
 
 ---
 
-### T6: Criar `fullscreen.js` (fullscreen + orientation lock + portrait guard)
+### T6: Create `fullscreen.js` (fullscreen + orientation lock + portrait guard)
 
-**What**: `requestGameFullscreen(canvas)` (feature-detected, silencioso em falha); `createPortraitGuard({overlayEl, onBlock, onUnblock})` escutando `resize`/`orientationchange`.
+**What**: `requestGameFullscreen(canvas)` (feature-detected, silent on failure); `createPortraitGuard({overlayEl, onBlock, onUnblock})` listening to `resize`/`orientationchange`.
 **Where**: `src/fullscreen.js`
 **Depends on**: None
-**Reuses**: Padrão de feature-detection de `main.js:15-23` (`webglAvailable`)
+**Reuses**: The feature-detection pattern from `main.js:15-23` (`webglAvailable`)
 **Requirement**: MOB-01, MOB-02, MOB-03
 
 **Tools**:
-- MCP: `context7` (Fullscreen API / Screen Orientation API atuais)
+- MCP: `context7` (current Fullscreen API / Screen Orientation API)
 - Skill: NONE
 
 **Done when**:
-- [ ] `requestGameFullscreen` não lança erro não tratado em navegador sem suporte (checado via `#nowebgl`-like flag manual ou DevTools)
-- [ ] `PortraitGuard.isPortrait()` reflete `window.innerWidth < window.innerHeight`
-- [ ] `npm run build` passa
+- [ ] `requestGameFullscreen` doesn't throw an unhandled error in a browser without support (checked via a manual `#nowebgl`-like flag or DevTools)
+- [ ] `PortraitGuard.isPortrait()` reflects `window.innerWidth < window.innerHeight`
+- [ ] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -204,12 +204,12 @@ T8 → T9
 
 ---
 
-### T7: Integrar fullscreen + overlay de retrato em `main.js`/`index.html`
+### T7: Integrate fullscreen + portrait overlay into `main.js`/`index.html`
 
-**What**: Botão play chama `requestGameFullscreen(canvas)` no mesmo gesto; novo `<div id="portrait-overlay">` em `index.html`; `createPortraitGuard` pausa o jogo (`isBlocked` combinado com o de `transitions.js` da feature `visual-bluey`, ou `Array.some()` de blockers) e solta o brinquedo em arrasto no lugar (reuso de `settle`) quando o retrato aparece.
-**Where**: `src/main.js` (modifica), `index.html` (modifica)
+**What**: The play button calls `requestGameFullscreen(canvas)` in the same gesture; new `<div id="portrait-overlay">` in `index.html`; `createPortraitGuard` pauses the game (`isBlocked` combined with the one from `transitions.js` in the `visual-bluey` feature, or an `Array.some()` of blockers) and settles any actively dragged toy in place (reuse of `settle`) when the portrait overlay appears.
+**Where**: `src/main.js` (modify), `index.html` (modify)
 **Depends on**: T6, T5
-**Reuses**: `fullscreen.js` (T6); `feedback.settle` existente; mecanismo `isBlocked` de `drag.js` (T4)
+**Reuses**: `fullscreen.js` (T6); existing `feedback.settle`; `isBlocked` mechanism from `drag.js` (T4)
 **Requirement**: MOB-01, MOB-02, MOB-03
 
 **Tools**:
@@ -217,23 +217,23 @@ T8 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Tocar play em viewport landscape simulado entra em fullscreen (ou degrada silenciosamente se a API faltar)
-- [ ] Girar para retrato mostra o overlay e pausa o input; girar de volta remove o overlay e retoma
-- [ ] Arrasto ativo ao entrar em retrato assenta o brinquedo no lugar (sem perda de estado)
-- [ ] `npm run build && npm test` passa
+- [ ] Tapping play in a simulated landscape viewport enters fullscreen (or degrades silently if the API is missing)
+- [ ] Rotating to portrait shows the overlay and pauses input; rotating back removes the overlay and resumes
+- [ ] An active drag when entering portrait settles the toy in place (no state loss)
+- [ ] `npm run build && npm test` passes
 
-**Tests**: none (fluxo coberto no E2E de T9)
+**Tests**: none (flow covered in T9's E2E)
 **Gate**: build
 **Commit**: `feat(mobile): wire fullscreen and portrait overlay into gameplay`
 
 ---
 
-### T8: Documentar acesso via rede local (LAN)
+### T8: Document local network (LAN) access
 
-**What**: `README.md` (ou seção em `docs/`) documentando `npm run dev -- --host` e `npm run preview -- --host`, com nota de que nenhuma funcionalidade de jogo depende de secure context.
-**Where**: `README.md` (cria se não existir) ou `docs/lan.md`
+**What**: `README.md` (or a section in `docs/`) documenting `npm run dev -- --host` and `npm run preview -- --host`, noting that no game functionality depends on a secure context.
+**Where**: `README.md` (create if it doesn't exist) or `docs/lan.md`
 **Depends on**: None
-**Reuses**: Suporte nativo do Vite (`--host`), sem código novo
+**Reuses**: Vite's native support (`--host`), no new code
 **Requirement**: MOB-03
 
 **Tools**:
@@ -241,8 +241,8 @@ T8 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Instruções testadas manualmente: `npm run dev -- --host` expõe um IP de rede local acessível de outro dispositivo
-- [ ] `npm run build` passa
+- [ ] Instructions tested manually: `npm run dev -- --host` exposes a local network IP reachable from another device
+- [ ] `npm run build` passes
 
 **Tests**: none
 **Gate**: build
@@ -250,12 +250,12 @@ T8 → T9
 
 ---
 
-### T9: Reescrever cenário E2E 05 (retrato) + novo cenário de câmera viva
+### T9: Rewrite E2E scenario 05 (portrait) + new live-camera scenario
 
-**What**: Reescrever `e2e/scenarios/05-robustez.md` para o novo contrato de retrato (overlay + pausa, não mais "afasta câmera"); criar `e2e/scenarios/06-camera-viva.md` cobrindo follow durante arrasto, retorno ao idle, e passeio de celebração, via `window.__game.state().camera.mode`.
-**Where**: `e2e/scenarios/05-robustez.md` (modifica), `e2e/scenarios/06-camera-viva.md` (novo)
+**What**: Rewrite `e2e/scenarios/05-robustez.md` for the new portrait contract (overlay + pause, no longer "pull camera back"); create `e2e/scenarios/06-camera-viva.md` covering follow during a drag, return to idle, and the celebration fly-around, via `window.__game.state().camera.mode`.
+**Where**: `e2e/scenarios/05-robustez.md` (modify), `e2e/scenarios/06-camera-viva.md` (new)
 **Depends on**: T7
-**Reuses**: Estrutura de cenário prompt-guiado existente (AD-006)
+**Reuses**: Existing prompt-guided scenario structure (AD-006)
 **Requirement**: MOB-01, MOB-02, MOB-04, MOB-05
 
 **Tools**:
@@ -263,9 +263,9 @@ T8 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Cenário 05 verde com o novo comportamento de retrato (overlay+pausa)
-- [ ] Cenário 06 verde: `camera.mode` alterna `idle→follow→emphasis→return→idle` num acerto, e passa por `celebrate` numa rodada completa
-- [ ] `npm run build && npm test` passa
+- [ ] Scenario 05 passes with the new portrait behavior (overlay+pause)
+- [ ] Scenario 06 passes: `camera.mode` cycles through `idle→follow→emphasis→return→idle` on a successful drop, and goes through `celebrate` on a completed round
+- [ ] `npm run build && npm test` passes
 
 **Tests**: e2e
 **Gate**: full
@@ -284,7 +284,7 @@ Phase 3:  T6 ──→ T7
 Phase 4:  T8 ──→ T9
 ```
 
-**Batching sugerido para Execute** (9 tasks > ~8, offer de sub-agentes será feito): Batch 1 = Phase 1 + Phase 2 (5 tasks), Batch 2 = Phase 3 + Phase 4 (4 tasks).
+**Suggested batching for Execute** (9 tasks > ~8, sub-agent offer will be made): Batch 1 = Phase 1 + Phase 2 (5 tasks), Batch 2 = Phase 3 + Phase 4 (4 tasks).
 
 ---
 
@@ -292,15 +292,15 @@ Phase 4:  T8 ──→ T9
 
 | Task | Scope | Status |
 | ---- | ----- | ------ |
-| T1: `cameraFraming.js` | 1 módulo (2 funções puras) | ✅ Granular |
-| T2: `cameraDirector.js` | 1 módulo (1 máquina de estados) | ✅ Granular |
-| T3: Refatorar `onResize` | 1 arquivo, 1 função | ✅ Granular |
-| T4: Estender `drag.js` | 1 arquivo, 2 parâmetros opcionais | ✅ Granular |
-| T5: Integrar director em `main.js` | 1 arquivo, 1 conceito coeso (fiação de câmera) | ✅ Granular |
-| T6: `fullscreen.js` | 1 módulo (2 funções) | ✅ Granular |
-| T7: Integrar fullscreen+retrato | 2 arquivos, 1 conceito coeso | ✅ Granular |
-| T8: Docs LAN | 1 arquivo | ✅ Granular |
-| T9: Revisão E2E | 2 arquivos de cenário, 1 conceito | ✅ Granular |
+| T1: `cameraFraming.js` | 1 module (2 pure functions) | ✅ Granular |
+| T2: `cameraDirector.js` | 1 module (1 state machine) | ✅ Granular |
+| T3: Refactor `onResize` | 1 file, 1 function | ✅ Granular |
+| T4: Extend `drag.js` | 1 file, 2 optional parameters | ✅ Granular |
+| T5: Integrate director into `main.js` | 1 file, 1 cohesive concept (camera wiring) | ✅ Granular |
+| T6: `fullscreen.js` | 1 module (2 functions) | ✅ Granular |
+| T7: Integrate fullscreen+portrait | 2 files, 1 cohesive concept | ✅ Granular |
+| T8: LAN docs | 1 file | ✅ Granular |
+| T9: E2E review | 2 scenario files, 1 concept | ✅ Granular |
 
 ---
 
@@ -308,17 +308,17 @@ Phase 4:  T8 ──→ T9
 
 | Task | Depends On (task body) | Diagram Shows | Status |
 | ---- | ----------------------- | -------------- | ------ |
-| T1 | None | (início da Phase 1) | ✅ Match |
+| T1 | None | (start of Phase 1) | ✅ Match |
 | T2 | T1 | T1→T2 | ✅ Match |
-| T3 | T1 | (início da Phase 2, depende de T1 da fase anterior) | ✅ Match |
-| T4 | None | T3→T4 (sequencial na fase) | ✅ Match |
-| T5 | T2, T3, T4 | T4→T5 (+ depende de T2, fase anterior) | ✅ Match |
-| T6 | None | (início da Phase 3) | ✅ Match |
-| T7 | T6, T5 | T6→T7 (+ depende de T5, fase anterior) | ✅ Match |
-| T8 | None | (início da Phase 4) | ✅ Match |
-| T9 | T7 | T8→T9 (sequencial na fase; dependência real é T7, fase anterior) | ✅ Match |
+| T3 | T1 | (start of Phase 2, depends on T1 from the previous phase) | ✅ Match |
+| T4 | None | T3→T4 (sequential within the phase) | ✅ Match |
+| T5 | T2, T3, T4 | T4→T5 (+ depends on T2, previous phase) | ✅ Match |
+| T6 | None | (start of Phase 3) | ✅ Match |
+| T7 | T6, T5 | T6→T7 (+ depends on T5, previous phase) | ✅ Match |
+| T8 | None | (start of Phase 4) | ✅ Match |
+| T9 | T7 | T8→T9 (sequential within the phase; real dependency is T7, previous phase) | ✅ Match |
 
-Nenhuma dependência aponta para uma fase posterior — todas apontam para trás ou dentro da mesma fase.
+No dependency points to a later phase — all point backward or within the same phase.
 
 ---
 
@@ -326,14 +326,14 @@ Nenhuma dependência aponta para uma fase posterior — todas apontam para trás
 
 | Task | Code Layer Created/Modified | Matrix Requires | Task Says | Status |
 | ---- | ----------------------------- | ------------------ | ----------- | ------ |
-| T1 | Lógica de câmera (`cameraFraming.js`) | unit | unit | ✅ OK |
-| T2 | Lógica de câmera (`cameraDirector.js`) | unit | unit | ✅ OK |
-| T3 | Renderização (`scene.js`) | none | none | ✅ OK |
-| T4 | Renderização (`drag.js`) | none | none | ✅ OK |
-| T5 | Renderização (`main.js`) | none | none | ✅ OK |
-| T6 | Renderização/browser API (`fullscreen.js`) | none | none | ✅ OK |
-| T7 | Renderização (`main.js`, `index.html`) | none | none | ✅ OK |
+| T1 | Camera logic (`cameraFraming.js`) | unit | unit | ✅ OK |
+| T2 | Camera logic (`cameraDirector.js`) | unit | unit | ✅ OK |
+| T3 | Rendering (`scene.js`) | none | none | ✅ OK |
+| T4 | Rendering (`drag.js`) | none | none | ✅ OK |
+| T5 | Rendering (`main.js`) | none | none | ✅ OK |
+| T6 | Rendering/browser API (`fullscreen.js`) | none | none | ✅ OK |
+| T7 | Rendering (`main.js`, `index.html`) | none | none | ✅ OK |
 | T8 | Docs | none | none | ✅ OK |
-| T9 | Fluxo integrado (E2E) | e2e | e2e | ✅ OK |
+| T9 | Integrated flow (E2E) | e2e | e2e | ✅ OK |
 
-Nenhuma violação — as duas únicas camadas testáveis unitariamente (`cameraFraming.js`, `cameraDirector.js`) têm seus testes co-localizados nas próprias T1/T2.
+No violations — the only two unit-testable layers (`cameraFraming.js`, `cameraDirector.js`) have their tests co-located in T1/T2 themselves.

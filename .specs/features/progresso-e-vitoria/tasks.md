@@ -1,4 +1,4 @@
-# Progresso e Vitória — Tasks
+# Progress and Victory — Tasks
 
 ## Execution Protocol (MANDATORY -- do not skip)
 
@@ -11,24 +11,24 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 **Design**: `.specs/features/progresso-e-vitoria/design.md`
 **Status**: In Progress
 
-**Nota de baseline (decisão do usuário, 2026-07-08):** a working tree contém trabalho
-não commitado da feature de câmera (camera-controls + recuo de abertura em
-`main.js`/`scene.js`/`drag.js`/`toys.js` + cenários E2E). O usuário escolheu "seguir
-por cima": os commits das tasks que tocam esses arquivos incluirão também essas
-mudanças pré-existentes. `glow-*.png` e `assets/bluey/bluey.glb` ficam fora dos commits.
+**Baseline note (user decision, 2026-07-08):** the working tree contains uncommitted
+work from the camera feature (camera-controls + opening pull-back in
+`main.js`/`scene.js`/`drag.js`/`toys.js` + E2E scenarios). The user chose to "carry it
+forward": the commits for tasks touching these files will also include those
+pre-existing changes. `glow-*.png` and `assets/bluey/bluey.glb` stay out of the commits.
 
 ---
 
 ## Test Coverage Matrix
 
-> Generated from codebase, project guidelines, and spec — guidelines found: `.specs/STATE.md` AD-004 (lógica pura testada com Vitest; render validado via E2E/manual) e AD-006 (E2E guiado por prompt via Playwright MCP sobre `e2e/scenarios/*.md` + hook `window.__game`).
+> Generated from codebase, project guidelines, and spec — guidelines found: `.specs/STATE.md` AD-004 (pure logic tested with Vitest; rendering validated via E2E/manual) and AD-006 (prompt-guided E2E via Playwright MCP over `e2e/scenarios/*.md` + `window.__game` hook).
 
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
-| ---------- | ------------------ | -------------------- | ---------------- | ----------- |
-| Lógica pura (`game.js`) | unit | Todas as branches novas; 1:1 com ACs WIN-05/07 e lógica de WIN-02/03/09; todos os edge cases de storage listados | `src/game.test.js` | `npm test` |
-| Controlador DOM com elementos injetados (`hud.js`) | unit (elementos mockados, padrão `transitions.test.js`) | 1:1 com ACs de HUD (WIN-01/02/03); clamps de entrada | `src/hud.test.js` | `npm test` |
-| Composição/render (`main.js`, `feedback.js`, `index.html`) | e2e (cenário prompt, AD-006) | Fluxo feliz de vitória + replay + edge cases visíveis (HUD, botão, save antigo); executado na validação (Verifier) via Playwright MCP | `e2e/scenarios/*.md` | Playwright MCP contra `npm run dev`/`vite preview` |
-| CSS/markup puro | none | — (gate de build; evidência visual via screenshots dos cenários) | — | `npm run build` |
+| ---------- | ------------------- | --------------------- | ----------------- | ------------ |
+| Pure logic (`game.js`) | unit | All new branches; 1:1 with ACs WIN-05/07 and the logic of WIN-02/03/09; all listed storage edge cases | `src/game.test.js` | `npm test` |
+| DOM controller with injected elements (`hud.js`) | unit (mocked elements, `transitions.test.js` pattern) | 1:1 with HUD ACs (WIN-01/02/03); input clamps | `src/hud.test.js` | `npm test` |
+| Composition/render (`main.js`, `feedback.js`, `index.html`) | e2e (prompt scenario, AD-006) | Happy path of victory + replay + visible edge cases (HUD, button, old save); run during validation (Verifier) via Playwright MCP | `e2e/scenarios/*.md` | Playwright MCP against `npm run dev`/`vite preview` |
+| Pure CSS/markup | none | — (build gate; visual evidence via scenario screenshots) | — | `npm run build` |
 
 ## Gate Check Commands
 
@@ -36,15 +36,15 @@ mudanças pré-existentes. `glow-*.png` e `assets/bluey/bluey.glb` ficam fora do
 
 | Gate Level | When to Use | Command |
 | ---------- | ----------- | ------- |
-| Quick | Tasks com unit tests apenas | `npm test` |
-| Full | Tasks que alteram cenários E2E | `npm test` (cenários E2E rodam na validação via Playwright MCP, AD-006) |
-| Build | Última task de fase / tasks só de markup | `npm run build && npm test` |
+| Quick | Tasks with unit tests only | `npm test` |
+| Full | Tasks that change E2E scenarios | `npm test` (E2E scenarios run during validation via Playwright MCP, AD-006) |
+| Build | Last task of a phase / markup-only tasks | `npm run build && npm test` |
 
 ---
 
 ## Execution Plan
 
-### Phase 1: Lógica pura (game.js)
+### Phase 1: Pure logic (game.js)
 
 ```
 T1 → T2
@@ -56,7 +56,7 @@ T1 → T2
 T3 → T4
 ```
 
-### Phase 3: Celebração e composição
+### Phase 3: Celebration and composition
 
 ```
 T5 → T6
@@ -66,137 +66,137 @@ T5 → T6
 
 ## Task Breakdown
 
-### T1: Fase `won` e regras de storage em game.js
+### T1: `won` phase and storage rules in game.js
 
-**What**: `TOTAL_ROUNDS = 3`; `tryStore` põe `phase = 'won'` ao completar a rodada 3 (senão `'celebrating'`) e remove a chave do storage; `advanceRound()` vira no-op quando `won`; `readSavedRound` trata save > 3 como 1.
+**What**: `TOTAL_ROUNDS = 3`; `tryStore` sets `phase = 'won'` upon completing round 3 (otherwise `'celebrating'`) and removes the storage key; `advanceRound()` becomes a no-op when `won`; `readSavedRound` treats save > 3 as 1.
 **Where**: `src/game.js` + `src/game.test.js`
 **Depends on**: None
-**Reuses**: wrappers tolerantes de storage (GUARD-06), padrão de testes existente
+**Reuses**: tolerant storage wrappers (GUARD-06), existing test pattern
 **Requirement**: WIN-05, WIN-07
 
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
 
-- [ ] Completar rodada 3 → `phase === 'won'`; rodadas 1–2 → `'celebrating'` (inalterado)
-- [ ] `advanceRound()` após `won` NÃO incrementa (nunca rodada 4)
-- [ ] Vitória remove `hora-de-guardar:round` do storage; storage que lança não quebra
-- [ ] Save salvo > 3 ou inválido → carrega rodada 1; save 2–3 preservado
-- [ ] Gate passa: `npm test` (test count ≥ atual, sem deleções)
+- [ ] Completing round 3 → `phase === 'won'`; rounds 1–2 → `'celebrating'` (unchanged)
+- [ ] `advanceRound()` after `won` does NOT increment (never round 4)
+- [ ] Victory removes `hora-de-guardar:round` from storage; storage that throws doesn't break
+- [ ] Saved round > 3 or invalid → loads round 1; save 2–3 preserved
+- [ ] Gate passes: `npm test` (test count ≥ current, no deletions)
 
 **Tests**: unit · **Gate**: quick
-**Commit**: `feat(game): vitoria apos 3 rodadas com limpeza do save`
+**Commit**: `feat(game): victory after 3 rounds with save cleanup`
 
 ---
 
-### T2: Progresso derivado e reset em game.js
+### T2: Derived progress and reset in game.js
 
-**What**: `getProgress()` → `{ round, totalRounds, stored, total, starsLit }` (starsLit = rodadas completadas; 3 quando `won`; barra = stored/total da rodada atual) e `reset()` (rodada 1, storage limpo, pronto para `startRound()`).
+**What**: `getProgress()` → `{ round, totalRounds, stored, total, starsLit }` (starsLit = completed rounds; 3 when `won`; bar = stored/total of the current round) and `reset()` (round 1, storage cleared, ready for `startRound()`).
 **Where**: `src/game.js` + `src/game.test.js`
 **Depends on**: T1
-**Reuses**: estado existente de `state.toys`
-**Requirement**: WIN-02, WIN-03, WIN-09 (lógica)
+**Reuses**: existing `state.toys` state
+**Requirement**: WIN-02, WIN-03, WIN-09 (logic)
 
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
 
-- [ ] `getProgress()` reflete stored/total por rodada e zera `stored` em rodada nova
-- [ ] `starsLit` = N−1 na rodada N; = 3 na vitória
-- [ ] `reset()` volta à rodada 1 com storage limpo; `startRound()` seguinte gera 6 brinquedos
-- [ ] Gate passa: `npm test`
+- [ ] `getProgress()` reflects stored/total per round and resets `stored` on a new round
+- [ ] `starsLit` = N−1 at round N; = 3 at victory
+- [ ] `reset()` returns to round 1 with storage cleared; the next `startRound()` generates 6 toys
+- [ ] Gate passes: `npm test`
 
 **Tests**: unit · **Gate**: quick
-**Commit**: `feat(game): progresso derivado (barra/estrelas) e reset de jogo`
+**Commit**: `feat(game): derived progress (bar/stars) and game reset`
 
 ---
 
-### T3: Markup e CSS do HUD + botão de replay
+### T3: HUD markup and CSS + replay button
 
-**What**: `#hud` fixo no topo (3 estrelas CSS/SVG inline + barra com `#bar-fill`), `pointer-events: none`, `z-index: 4`; `#replay-overlay.hidden` com `#replay-button` (clone visual do `#play-button`, sem texto).
+**What**: `#hud` fixed at the top (3 inline CSS/SVG stars + bar with `#bar-fill`), `pointer-events: none`, `z-index: 4`; `#replay-overlay.hidden` with `#replay-button` (visual clone of `#play-button`, no text).
 **Where**: `index.html`
 **Depends on**: None
-**Reuses**: estilo do `#play-button`, convenção de overlays/z-index existente
+**Reuses**: `#play-button` style, existing overlay/z-index convention
 **Requirement**: WIN-01, WIN-04
 
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
 
-- [ ] HUD sem nenhum texto; não captura ponteiro; visível e proporcional em 1280×800 e 390×844 (unidades relativas)
-- [ ] z-index: HUD 4 < iris 5 < start 10 < erro WebGL 20
-- [ ] `#replay-overlay` oculto por padrão
-- [ ] Gate passa: `npm run build && npm test`
+- [ ] HUD has no text at all; doesn't capture the pointer; visible and proportional at 1280×800 and 390×844 (relative units)
+- [ ] z-index: HUD 4 < iris 5 < start 10 < WebGL error 20
+- [ ] `#replay-overlay` hidden by default
+- [ ] Gate passes: `npm run build && npm test`
 
-**Tests**: none (camada markup; evidência visual nos cenários E2E da validação) · **Gate**: build
-**Commit**: `feat(hud): markup e estilo do HUD de progresso e botao de replay`
+**Tests**: none (markup layer; visual evidence in the E2E scenarios during validation) · **Gate**: build
+**Commit**: `feat(hud): progress HUD markup and styling plus replay button`
 
 ---
 
-### T4: Módulo hud.js
+### T4: hud.js module
 
-**What**: `createHud({ starEls, barFillEl })` com `set({ starsLit, fraction })` — classe `lit` nas estrelas, `style.width` percentual na barra; entradas clampadas.
+**What**: `createHud({ starEls, barFillEl })` with `set({ starsLit, fraction })` — `lit` class on the stars, percentage `style.width` on the bar; clamped inputs.
 **Where**: `src/hud.js` + `src/hud.test.js`
-**Depends on**: T3 (nomes/classes dos elementos)
-**Reuses**: padrão de elementos mockados de `transitions.test.js`
+**Depends on**: T3 (element names/classes)
+**Reuses**: mocked-element pattern from `transitions.test.js`
 **Requirement**: WIN-01, WIN-02, WIN-03
 
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
 
-- [ ] `set({starsLit: 2, fraction: 0.5})` → 2 primeiras estrelas `lit`, barra `50%`
-- [ ] Reaplicar com menos estrelas apaga as extras (replay zera)
-- [ ] `fraction`/`starsLit` fora dos limites são clampados
-- [ ] Gate passa: `npm test`
+- [ ] `set({starsLit: 2, fraction: 0.5})` → first 2 stars `lit`, bar `50%`
+- [ ] Reapplying with fewer stars clears the extras (replay resets)
+- [ ] `fraction`/`starsLit` outside bounds are clamped
+- [ ] Gate passes: `npm test`
 
 **Tests**: unit · **Gate**: quick
-**Commit**: `feat(hud): controlador do HUD de progresso (estrelas + barra)`
+**Commit**: `feat(hud): progress HUD controller (stars + bar)`
 
 ---
 
-### T5: Celebração de vitória em feedback.js
+### T5: Victory celebration in feedback.js
 
-**What**: `victory(boxes)` — `confetti.rain(8)`, `bluey.danceAt(centro, 8)`, pulse em todas as caixas e jingle de vitória (~2s, arpejo estendido com `note`), distinta de `roundComplete`.
+**What**: `victory(boxes)` — `confetti.rain(8)`, `bluey.danceAt(center, 8)`, pulse on all boxes, and a victory jingle (~2s, extended arpeggio with `note`), distinct from `roundComplete`.
 **Where**: `src/feedback.js`
 **Depends on**: None
-**Reuses**: pool de confete, `danceAt`, primitivas WebAudio `note`/`safePlay`
+**Reuses**: confetti pool, `danceAt`, WebAudio primitives `note`/`safePlay`
 **Requirement**: WIN-06
 
 **Tools**: MCP: NONE · Skill: NONE
 
 **Done when**:
 
-- [ ] `victory()` exportado e mais longo/denso que `roundComplete` (8s de chuva vs 3s; jingle próprio)
-- [ ] Falha de áudio segue silenciosa (`safePlay`)
-- [ ] Gate passa: `npm test`
+- [ ] `victory()` exported and longer/denser than `roundComplete` (8s of rain vs 3s; its own jingle)
+- [ ] Audio failure stays silent (`safePlay`)
+- [ ] Gate passes: `npm test`
 
-**Tests**: none (camada render, AD-004; evidência nos cenários E2E da validação) · **Gate**: quick
-**Commit**: `feat(feedback): celebracao grande de vitoria`
+**Tests**: none (render layer, AD-004; evidence in the E2E scenarios during validation) · **Gate**: quick
+**Commit**: `feat(feedback): big victory celebration`
 
 ---
 
-### T6: Composição em main.js + hook E2E + cenários
+### T6: Composition in main.js + E2E hook + scenarios
 
-**What**: HUD atualizado (spawn/stored/replay); fluxo de vitória (`phase === 'won'` → `feedback.victory`, timer 4s → mostra replay); handler do replay (iris → `reset` → `spawnRound` → HUD zerado → iris abre); caminho de erro WebGL remove `#hud`/`#replay-overlay`; `window.__game.state()` ganha `progress`. Cenário novo `e2e/scenarios/06-progresso-e-vitoria.md` (vitória completa via seed + replay + save antigo > 3) e ajuste do 02 (rodada 3 termina em vitória, não em rodada 4).
+**What**: Updated HUD (spawn/stored/replay); victory flow (`phase === 'won'` → `feedback.victory`, 4s timer → shows replay); replay handler (iris → `reset` → `spawnRound` → HUD reset → iris opens); WebGL error path removes `#hud`/`#replay-overlay`; `window.__game.state()` gains `progress`. New scenario `e2e/scenarios/06-progresso-e-vitoria.md` (full victory via seed + replay + old save > 3) and adjustment of scenario 02 (round 3 ends in victory, not round 4).
 **Where**: `src/main.js`, `e2e/scenarios/06-progresso-e-vitoria.md`, `e2e/scenarios/02-rodada-completa.md`
 **Depends on**: T1, T2, T3, T4, T5
-**Reuses**: fluxo iris existente da troca de rodada, padrão dos cenários E2E (AD-006)
+**Reuses**: existing iris flow from the round transition, E2E scenario pattern (AD-006)
 **Requirement**: WIN-02, WIN-04, WIN-05, WIN-06, WIN-08, WIN-09
 
-**Tools**: MCP: Playwright (somente na validação) · Skill: NONE
+**Tools**: MCP: Playwright (validation only) · Skill: NONE
 
 **Done when**:
 
-- [ ] Barra avança a cada `stored`; estrela acende ao completar rodada; barra zera na rodada nova
-- [ ] Vitória: celebração grande, botão replay após ~4s, arrasto inerte (`phase !== 'playing'`)
-- [ ] Replay: rodada 1, HUD zerado, botão some, arrasto funciona
-- [ ] `state().progress` disponível para os cenários
-- [ ] Cenário 06 escrito (happy + edge: save>3, reload pós-vitória); cenário 02 ajustado
-- [ ] Gate passa: `npm run build && npm test`
+- [ ] Bar advances with each `stored`; star lights up on round completion; bar resets on a new round
+- [ ] Victory: big celebration, replay button after ~4s, dragging inert (`phase !== 'playing'`)
+- [ ] Replay: round 1, HUD reset, button disappears, dragging works
+- [ ] `state().progress` available for the scenarios
+- [ ] Scenario 06 written (happy path + edge cases: save>3, reload post-victory); scenario 02 adjusted
+- [ ] Gate passes: `npm run build && npm test`
 
-**Tests**: e2e (cenários escritos nesta task; executados na validação pelo Verifier via Playwright MCP, AD-006) · **Gate**: build
-**Commit**: `feat(main): progresso no HUD, fluxo de vitoria e replay`
+**Tests**: e2e (scenarios written in this task; run during validation by the Verifier via Playwright MCP, AD-006) · **Gate**: build
+**Commit**: `feat(main): HUD progress, victory flow and replay`
 
 ---
 
@@ -210,8 +210,8 @@ Phase 2:  T3 ──→ T4
 Phase 3:  T5 ──→ T6
 ```
 
-6 tasks ⇒ um único batch (≤ ~8) ⇒ execução inline, sem sub-agentes de batch.
-Verifier roda automaticamente após T6.
+6 tasks ⇒ a single batch (≤ ~8) ⇒ inline execution, no batch sub-agents.
+The Verifier runs automatically after T6.
 
 ---
 
@@ -219,31 +219,31 @@ Verifier roda automaticamente após T6.
 
 | Task | Scope | Status |
 | ---- | ----- | ------ |
-| T1: fase won + storage | 1 arquivo, regras coesas de fim de jogo | ✅ Granular |
-| T2: progresso + reset | 1 arquivo, 2 funções derivadas | ✅ Granular |
-| T3: markup/CSS HUD + replay | 1 arquivo (index.html) | ✅ Granular |
-| T4: hud.js | 1 módulo novo | ✅ Granular |
-| T5: victory() | 1 função em 1 arquivo | ✅ Granular |
-| T6: composição + cenários | 1 arquivo de código + docs de cenário coesos ao wiring (merge-forward) | ✅ OK (coeso) |
+| T1: won phase + storage | 1 file, cohesive end-of-game rules | ✅ Granular |
+| T2: progress + reset | 1 file, 2 derived functions | ✅ Granular |
+| T3: HUD markup/CSS + replay | 1 file (index.html) | ✅ Granular |
+| T4: hud.js | 1 new module | ✅ Granular |
+| T5: victory() | 1 function in 1 file | ✅ Granular |
+| T6: composition + scenarios | 1 code file + scenario docs cohesive with the wiring (merge-forward) | ✅ OK (cohesive) |
 
 ## Diagram-Definition Cross-Check
 
 | Task | Depends On (body) | Diagram Shows | Status |
-| ---- | ----------------- | ------------- | ------ |
-| T1 | None | início Phase 1 | ✅ Match |
+| ---- | ------------------- | -------------- | ------ |
+| T1 | None | start of Phase 1 | ✅ Match |
 | T2 | T1 | T1 → T2 | ✅ Match |
-| T3 | None | início Phase 2 (após Phase 1) | ✅ Match |
+| T3 | None | start of Phase 2 (after Phase 1) | ✅ Match |
 | T4 | T3 | T3 → T4 | ✅ Match |
-| T5 | None | início Phase 3 (após Phase 2) | ✅ Match |
-| T6 | T1–T5 | último nó | ✅ Match |
+| T5 | None | start of Phase 3 (after Phase 2) | ✅ Match |
+| T6 | T1–T5 | last node | ✅ Match |
 
 ## Test Co-location Validation
 
 | Task | Code Layer | Matrix Requires | Task Says | Status |
-| ---- | ---------- | --------------- | --------- | ------ |
-| T1 | lógica pura | unit | unit | ✅ OK |
-| T2 | lógica pura | unit | unit | ✅ OK |
+| ---- | ---------- | ------------------ | ---------- | ------ |
+| T1 | pure logic | unit | unit | ✅ OK |
+| T2 | pure logic | unit | unit | ✅ OK |
 | T3 | CSS/markup | none (build) | none | ✅ OK |
-| T4 | controlador DOM | unit | unit | ✅ OK |
-| T5 | render | e2e na validação (AD-004/006) | none + evidência e2e na validação | ✅ OK |
-| T6 | composição | e2e (cenário prompt) | e2e — cenários escritos NA task (merge-forward) | ✅ OK |
+| T4 | DOM controller | unit | unit | ✅ OK |
+| T5 | render | e2e during validation (AD-004/006) | none + e2e evidence during validation | ✅ OK |
+| T6 | composition | e2e (prompt scenario) | e2e — scenarios written IN the task (merge-forward) | ✅ OK |
