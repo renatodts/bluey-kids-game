@@ -54,8 +54,8 @@ O jogo: guardar brinquedos 3D nas caixas certas, por tipo, na sala da família H
 
 1. QUANDO a criança toca/clica num brinquedo ENTÃO o sistema DEVE levantá-lo do chão e fazê-lo seguir o ponteiro sobre o plano do chão (GUARD-01)
 2. QUANDO o brinquedo é solto dentro do raio de acerto da caixa do MESMO tipo ENTÃO o sistema DEVE absorvê-lo na caixa com animação de pulo (GUARD-02)
-3. QUANDO o brinquedo é solto dentro do raio de acerto de uma caixa de tipo DIFERENTE ENTÃO o sistema DEVE balançar a caixa e devolver o brinquedo quicando ao chão, sem som negativo (GUARD-03)
-4. QUANDO o brinquedo é solto fora do raio de qualquer caixa ENTÃO o sistema DEVE assentá-lo suavemente no chão onde foi solto (GUARD-03)
+3. QUANDO o brinquedo é solto dentro do raio de acerto de uma caixa de tipo DIFERENTE ENTÃO o sistema DEVE balançar a caixa e devolver o brinquedo quicando ao chão, sem som punitivo tradicional (emendado por MUS-04: um toque curto e bem-humorado é permitido — ver `.specs/features/musica-e-sons/spec.md`) (GUARD-03)
+4. QUANDO o brinquedo é solto fora do raio de qualquer caixa ENTÃO o sistema DEVE assentá-lo suavemente no chão onde foi solto (emendado por MUS-04.1: mesmo toque bem-humorado de GUARD-03.3) (GUARD-03)
 5. QUANDO um segundo dedo toca a tela durante um arrasto ENTÃO o sistema DEVE ignorá-lo (só o primeiro ponteiro arrasta) (GUARD-01)
 
 **Independent Test**: Abrir o jogo, arrastar uma bola até a cesta → bola some na cesta; arrastar um bloco até a cesta → cesta balança e bloco volta.
@@ -115,6 +115,7 @@ O jogo: guardar brinquedos 3D nas caixas certas, por tipo, na sala da família H
 1. QUANDO o primeiro toque/clique acontece (botão grande de play na tela inicial) ENTÃO o sistema DEVE destravar o WebAudio (GUARD-09)
 2. QUANDO um brinquedo é guardado corretamente ENTÃO o sistema DEVE tocar um som curto de acerto; QUANDO a rodada termina, uma fanfarra (GUARD-09)
 3. QUANDO o áudio não puder ser destravado ENTÃO o sistema DEVE seguir funcional em silêncio (GUARD-09)
+4. QUANDO o áudio é destravado ENTÃO o sistema DEVE também iniciar uma música de fundo em loop, sempre em volume mais baixo que os efeitos de acerto/erro/fanfarra/vitória (emenda: ver `.specs/features/musica-e-sons/spec.md`, MUS-01/02/03)
 
 **Independent Test**: Tocar play → acertar → som; abrir com som do sistema mutado → jogo segue normal.
 
