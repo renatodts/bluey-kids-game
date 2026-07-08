@@ -29,6 +29,15 @@
         background: rgba(126, 200, 227, 0.95);
         z-index: 10;
       }
+      /* Camada da transição iris: inicia cobrindo a tela; open() a recolhe. */
+      #transition-overlay {
+        position: fixed;
+        inset: 0;
+        background: #7ec8e3;
+        z-index: 30;
+        pointer-events: none;
+        clip-path: circle(150% at 50% 50%);
+      }
       #start-overlay.hidden {
         display: none;
       }
@@ -59,6 +68,7 @@
     <div id="start-overlay">
       <button id="play-button" aria-label="Jogar"></button>
     </div>
+    <div id="transition-overlay"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
